@@ -1,14 +1,38 @@
+/*
+    A standalone implementation of Webpack's hot module replacement (HMR) system.
 
-// This code (crudely) simulates the hot-module-reloading runtime provided by Webpack.
-// We only need to implement a small part of the API in order to provide standalone
-// Elm hot reloading without Webpack. We don't need any of the stuff related to Webpack's
-// ability to bundle disparate types of modules (JS, CSS, etc.).
-//
-// For details on the Webpack HMR API, see https://webpack.js.org/api/hot-module-replacement/
+    Provide the minimal implementation of Webpack's HMR API. We don't need any of the
+    stuff related to Webpack's ability to bundle disparate types of modules (JS, CSS, etc.).
 
-console.log("loading the HMR runtime")
+    For details on the Webpack HMR API, see https://webpack.js.org/api/hot-module-replacement/
+    and the source code of `webpack-hot-middleware`
+ */
 
-var myDisposeCallback = null
+// TODO [kl] stop hard-coding this URL
+var serverUrl = "http://127.0.0.1:3000/injected.js";
+
+// TODO [kl] cleanup the globals
+
+// Listen for the server to tell us that an HMR update is available
+var eventSource = new EventSource("stream");
+eventSource.onmessage = function (evt) {
+    console.log("got message: " + evt.data);
+    console.log("pulling new code");
+    var myRequest = new Request(serverUrl);
+    myRequest.cache = "no-cache";
+    fetch(myRequest).then(function (response) {
+        console.log(response.status + " " + response.statusText);
+        response.text().then(function (value) {
+            jsModule.hot.myHotApply();
+            delete Elm;
+            eval(value)
+        })
+    })
+};
+
+// Expose the Webpack HMR API
+
+var myDisposeCallback = null;
 
 // TODO [kl] or alias it to module if running in Webpack
 var jsModule = {
