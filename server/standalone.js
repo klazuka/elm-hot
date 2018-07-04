@@ -13,6 +13,7 @@ app.get('/client.js', (req, res) => res.sendFile(path.join(__dirname, "../hmr/cl
 app.get('/runtime.js', (req, res) => res.sendFile(path.join(__dirname, "../hmr/runtime.js")));
 
 app.get('/injected.js', function (req, res) {
+    console.log("GET /injected.js");
     const originalElmCode = fs.readFileSync(pathToElmCode);
     const hmrCode = fs.readFileSync(path.join(__dirname, "../hmr/hmr.js"));
 
@@ -41,4 +42,16 @@ app.get('/stream', function (req, res) {
     });
 });
 
-app.listen(3000, () => console.log('Server listening on port 3000!'));
+function startServer(port) {
+    return app.listen(port);
+}
+
+if (require.main === module) {
+    startServer(3000);
+    console.log("Server listening at http://127.0.0.1:3000")
+}
+
+module.exports = {
+    app,
+    startServer: startServer
+};

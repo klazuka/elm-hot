@@ -8,8 +8,8 @@
     and the source code of `webpack-hot-middleware`
  */
 
-// TODO [kl] stop hard-coding this URL
-var serverUrl = "http://127.0.0.1:3000/injected.js";
+// TODO [kl] stop hard-coding this
+var serverUrl = "/injected.js";
 
 // TODO [kl] cleanup the globals
 
