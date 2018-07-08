@@ -4,27 +4,35 @@ const fs = require('fs');
 const chokidar = require('chokidar');
 const app = express();
 
-const pathToElmCode = path.join(__dirname, "../app/dist/elm-output.js");
+const pathToTestFixtures = path.join(__dirname, "../test/fixtures");
+const pathToBuildDir = path.join(pathToTestFixtures, "build");
+const watcher = chokidar.watch(pathToBuildDir, {persistent: true});
 
-const watcher = chokidar.watch(pathToElmCode, {persistent: true});
-
-app.get('/', (req, res) => res.sendFile(path.join(__dirname, "../app/app.html")));
-app.get('/client.js', (req, res) => res.sendFile(path.join(__dirname, "../hmr/client.js")));
 app.get('/runtime.js', (req, res) => res.sendFile(path.join(__dirname, "../hmr/runtime.js")));
 
-app.get('/injected.js', function (req, res) {
-    console.log("GET /injected.js");
-    const originalElmCode = fs.readFileSync(pathToElmCode);
+app.get('/:filename.html', (req, res) => {
+    const filename = req.params.filename + ".html";
+    console.log("Getting HTML for " + filename);
+    res.sendFile(path.join(pathToTestFixtures, filename))
+});
+
+app.get('/build/:filename.js', function (req, res) {
+    const filename = req.params.filename + ".js";
+    console.log("Doing injection for " + filename);
+
+    const pathToElmCodeJS = path.join(pathToBuildDir, filename);
+
+    const originalElmCodeJS = fs.readFileSync(pathToElmCodeJS);
     const hmrCode = fs.readFileSync(path.join(__dirname, "../hmr/hmr.js"));
 
     const regex = /(_Platform_export\([^]*)(}\(this\)\);)/;
-    const match = regex.exec(originalElmCode);
+    const match = regex.exec(originalElmCodeJS);
 
     if (match === null) {
         throw new Error("Compiled JS from the Elm compiler is not valid. Version mismatch?");
     }
 
-    const fullyInjectedCode = originalElmCode.slice(0, match.index)
+    const fullyInjectedCode = originalElmCodeJS.slice(0, match.index)
         + match[1] + "\n\n" + hmrCode + "\n\n" + match[2];
 
     res.send(fullyInjectedCode);
@@ -36,9 +44,10 @@ app.get('/stream', function (req, res) {
         'Content-Type': 'text/event-stream'
     });
 
-    watcher.on('change', function(path, stats) {
-        console.log('path ' + path + ' changed');
-        res.write('data: something changed\n\n');
+    watcher.on('change', function(pathThatChanged, stats) {
+        console.log('path ' + pathThatChanged + ' changed');
+        const relativeLoadPath = path.relative(pathToTestFixtures, pathThatChanged);
+        res.write(`data: ${relativeLoadPath}\n\n`);
     });
 });
 

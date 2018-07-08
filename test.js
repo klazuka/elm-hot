@@ -33,7 +33,7 @@ test('counter HMR preserves count', async t => {
         return value;
     }
 
-    const pathToElmCode = path.join(__dirname, "./app/dist/elm-output.js");
+    const pathToElmCode = path.join(__dirname, "./test/fixtures/build/BrowserElementCounter.js");
     const elmCode = fs.readFileSync(pathToElmCode, {encoding: "utf8"});
     const originalIncrementCode = "return _Utils_Tuple2(model + 1, elm$core$Platform$Cmd$none);";
     const modifiedIncrementCode = originalIncrementCode.replace("model + 1", "model + 100");
@@ -43,7 +43,7 @@ test('counter HMR preserves count', async t => {
     // page.on('console', msg => console.log(msg.text()));
 
     console.log("Loading the page");
-    await page.goto(serverUrl);
+    await page.goto(serverUrl + "/BrowserElementCounter.html");
     console.log("Finished loading the page");
 
     t.is(await getCounterValue(page), 0);

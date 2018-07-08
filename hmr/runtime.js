@@ -8,17 +8,15 @@
     and the source code of `webpack-hot-middleware`
  */
 
-// TODO [kl] stop hard-coding this
-var serverUrl = "/injected.js";
-
 // TODO [kl] cleanup the globals
 
 // Listen for the server to tell us that an HMR update is available
 var eventSource = new EventSource("stream");
 eventSource.onmessage = function (evt) {
     console.log("got message: " + evt.data);
+    var reloadUrl = evt.data;
     console.log("pulling new code");
-    var myRequest = new Request(serverUrl);
+    var myRequest = new Request(reloadUrl);
     myRequest.cache = "no-cache";
     fetch(myRequest).then(function (response) {
         console.log(response.status + " " + response.statusText);
@@ -42,7 +40,7 @@ var jsModule = {
         },
 
         dispose: function (callback) {
-            console.log("hot.dispose() called; storing callback")
+            console.log("hot.dispose() called; storing callback");
             myDisposeCallback = callback
         },
 
@@ -51,12 +49,12 @@ var jsModule = {
         // only needed when running without webpack
         // TODO [kl] don't call this if you are running in a webpack environment
         myHotApply: function () {
-            console.log("myHotApply()")
-            var newData = {}
-            myDisposeCallback(newData)
-            console.log("storing disposed hot data " + JSON.stringify(newData))
+            console.log("myHotApply()");
+            var newData = {};
+            myDisposeCallback(newData);
+            console.log("storing disposed hot data " + JSON.stringify(newData));
             jsModule.hot.data = newData
         }
 
     }
-}
+};

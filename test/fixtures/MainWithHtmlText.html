@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>Main</title>
 	<script type="text/javascript" src="runtime.js"></script>
-	<script type="text/javascript" src="injected.js"></script>
+	<script type="text/javascript" src="build/MainWithHtmlText.js"></script>
 </head>
 
 <body>
@@ -12,12 +12,8 @@
 	<div id="embed">to be filled out later</div>
 </div>
 <script>
-    console.log("my JS code now calling Elm.$MODULE.init()")
-    Elm.Counter.init({
-        node: document.getElementById('embed'),
-        flags: {
-            n : 0
-        }
+    Elm.MainWithHtmlText.init({
+        node: document.getElementById('embed')
     });
 </script>
 </body>

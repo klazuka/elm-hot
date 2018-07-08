@@ -1,4 +1,4 @@
-module Counter exposing (..)
+module BrowserElementCounter exposing (..)
 
 import Browser
 import Html exposing (button, div, text)

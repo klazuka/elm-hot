@@ -1,7 +1,9 @@
 port module MainWithPorts exposing (main)
 
 import Browser
-import Html exposing (Html, text)
+import Html exposing (Html, button, div, p, text)
+import Html.Attributes exposing (id)
+import Html.Events exposing (onClick)
 
 
 port toJavaScript : Int -> Cmd msg
@@ -19,9 +21,12 @@ init flags =
     ( 0, Cmd.none )
 
 
-view : Model -> Html msg
+view : Model -> Html Msg
 view model =
-    text (String.fromInt model)
+    div []
+        [ p [] [ text ("Current value is " ++ String.fromInt model) ]
+        , button [ onClick Send, id "send-to-port" ] [ text "Send" ]
+        ]
 
 
 type Msg
