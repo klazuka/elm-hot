@@ -1,7 +1,7 @@
 port module MainWithPorts exposing (main)
 
 import Browser
-import Html exposing (Html, button, div, p, text)
+import Html exposing (Html, button, div, h1, p, span, text)
 import Html.Attributes exposing (id)
 import Html.Events exposing (onClick)
 
@@ -24,29 +24,33 @@ init flags =
 view : Model -> Html Msg
 view model =
     div []
-        [ p [] [ text ("Current value is " ++ String.fromInt model) ]
-        , button [ onClick Send, id "send-to-port" ] [ text "Send" ]
+        [ h1 [] [ text "MainWithPorts" ]
+        , p []
+            [ text "Counter value is: "
+            , span [ id "counter-value" ] [ text (String.fromInt model) ]
+            ]
+        , button [ onClick Increment, id "button-plus" ] [ text "+" ]
         ]
 
 
 type Msg
-    = Send
-    | Got Int
+    = Increment
+    | GotNewValue Int
 
 
 update : Msg -> Model -> ( Model, Cmd msg )
 update msg model =
     case msg of
-        Send ->
+        Increment ->
             ( model, toJavaScript model )
 
-        Got n ->
-            ( n, Cmd.none )
+        GotNewValue n ->
+            ( n + 1, Cmd.none )
 
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    fromJavaScript Got
+    fromJavaScript GotNewValue
 
 
 main =

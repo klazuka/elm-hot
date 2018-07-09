@@ -10,23 +10,27 @@
 
 // TODO [kl] cleanup the globals
 
-// Listen for the server to tell us that an HMR update is available
-var eventSource = new EventSource("stream");
-eventSource.onmessage = function (evt) {
-    console.log("got message: " + evt.data);
-    var reloadUrl = evt.data;
-    console.log("pulling new code");
-    var myRequest = new Request(reloadUrl);
-    myRequest.cache = "no-cache";
-    fetch(myRequest).then(function (response) {
-        console.log(response.status + " " + response.statusText);
-        response.text().then(function (value) {
-            jsModule.hot.myHotApply();
-            delete Elm;
-            eval(value)
+var eventSource = null;
+
+function connect(programName) {
+    // Listen for the server to tell us that an HMR update is available
+    eventSource = new EventSource("stream-" + programName);
+    eventSource.onmessage = function (evt) {
+        console.log("got message: " + evt.data);
+        var reloadUrl = evt.data;
+        console.log("pulling new code");
+        var myRequest = new Request(reloadUrl);
+        myRequest.cache = "no-cache";
+        fetch(myRequest).then(function (response) {
+            console.log(response.status + " " + response.statusText);
+            response.text().then(function (value) {
+                jsModule.hot.myHotApply();
+                delete Elm;
+                eval(value)
+            })
         })
-    })
-};
+    };
+}
 
 // Expose the Webpack HMR API
 

@@ -12,13 +12,14 @@
 	<div id="embed">to be filled out later</div>
 </div>
 <script>
+    connect("MainWithPorts");
     var app = Elm.MainWithPorts.init({
         node: document.getElementById('embed'),
         flags: {}
     });
 
     app.ports.toJavaScript.subscribe(function (n) {
-        app.ports.fromJavaScript.send(n + 1);
+        app.ports.fromJavaScript.send(n);
     });
 </script>
 </body>

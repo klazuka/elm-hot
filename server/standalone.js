@@ -12,16 +12,12 @@ app.get('/runtime.js', (req, res) => res.sendFile(path.join(__dirname, "../hmr/r
 
 app.get('/:filename.html', (req, res) => {
     const filename = req.params.filename + ".html";
-    console.log("Getting HTML for " + filename);
     res.sendFile(path.join(pathToTestFixtures, filename))
 });
 
 app.get('/build/:filename.js', function (req, res) {
     const filename = req.params.filename + ".js";
-    console.log("Doing injection for " + filename);
-
     const pathToElmCodeJS = path.join(pathToBuildDir, filename);
-
     const originalElmCodeJS = fs.readFileSync(pathToElmCodeJS);
     const hmrCode = fs.readFileSync(path.join(__dirname, "../hmr/hmr.js"));
 
@@ -38,16 +34,20 @@ app.get('/build/:filename.js', function (req, res) {
     res.send(fullyInjectedCode);
 });
 
-app.get('/stream', function (req, res) {
+// TODO [kl] figure out a better way to filter the events.
+// Kinda lame expressing it in the EventSource URL.
+app.get('/stream-:programName', function (req, res) {
+    const programName = req.params.programName;
     res.writeHead(200, {
         'Connection': 'keep-alive',
         'Content-Type': 'text/event-stream'
     });
 
     watcher.on('change', function(pathThatChanged, stats) {
-        console.log('path ' + pathThatChanged + ' changed');
-        const relativeLoadPath = path.relative(pathToTestFixtures, pathThatChanged);
-        res.write(`data: ${relativeLoadPath}\n\n`);
+        if (pathThatChanged.endsWith(programName + ".js")) {
+            const relativeLoadPath = path.relative(pathToTestFixtures, pathThatChanged);
+            res.write(`data: ${relativeLoadPath}\n\n`);
+        }
     });
 });
 

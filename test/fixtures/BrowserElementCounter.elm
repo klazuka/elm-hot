@@ -1,7 +1,7 @@
 module BrowserElementCounter exposing (..)
 
 import Browser
-import Html exposing (button, div, text)
+import Html exposing (button, div, h1, p, span, text)
 import Html.Attributes exposing (id)
 import Html.Events exposing (onClick)
 
@@ -33,16 +33,12 @@ init flags =
 
 type Msg
     = Increment
-    | Decrement
 
 
 update msg model =
     case msg of
         Increment ->
             ( model + 1, Cmd.none )
-
-        Decrement ->
-            ( model - 1, Cmd.none )
 
 
 
@@ -51,8 +47,10 @@ update msg model =
 
 view model =
     div []
-        [ button [ onClick Decrement, id "button-minus" ] [ text "-" ]
-        , div [ id "counter-value" ] [ text (String.fromInt model) ]
+        [ h1 [] [ text "BrowserElementCounter" ]
+        , p []
+            [ text "Counter value is: "
+            , span [ id "counter-value" ] [ text (String.fromInt model) ]
+            ]
         , button [ onClick Increment, id "button-plus" ] [ text "+" ]
-        , text "his beard was of FIRE and his staff a leaping flame."
         ]
