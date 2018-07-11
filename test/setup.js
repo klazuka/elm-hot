@@ -8,7 +8,7 @@ global.test = test;
 
 test.before(async () => {
     childProcess.execFileSync('./build.sh', {cwd: "./test/fixtures"});
-    global.browser = await puppeteer.launch({headless: true, slowMo: 100});
+    global.browser = await puppeteer.launch({headless: true, slowMo: 100, args: ['--no-sandbox']});
 });
 
 test.beforeEach(async t => {
