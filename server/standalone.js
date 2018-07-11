@@ -6,6 +6,12 @@ const app = express();
 
 const pathToTestFixtures = path.join(__dirname, "../test/fixtures");
 const pathToBuildDir = path.join(pathToTestFixtures, "build");
+
+try {
+    fs.mkdirSync(pathToBuildDir);
+} catch (error) {
+    if (error.code !== 'EEXIST') throw error;
+}
 const watcher = chokidar.watch(pathToBuildDir, {persistent: true});
 
 app.get('/runtime.js', (req, res) => res.sendFile(path.join(__dirname, "../hmr/runtime.js")));
@@ -45,6 +51,7 @@ app.get('/stream-:programName', function (req, res) {
 
     watcher.on('change', function(pathThatChanged, stats) {
         if (pathThatChanged.endsWith(programName + ".js")) {
+            console.log("Pushing HMR event to client");
             const relativeLoadPath = path.relative(pathToTestFixtures, pathThatChanged);
             res.write(`data: ${relativeLoadPath}\n\n`);
         }

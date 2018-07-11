@@ -7,7 +7,10 @@ const {startServer} = require('../server/standalone.js');
 global.test = test;
 
 test.before(async () => {
-    childProcess.execFileSync('./build.sh', {cwd: "./test/fixtures"});
+    console.log("Building the Elm code");
+    const output = childProcess.execFileSync('./build.sh', {cwd: "./test/fixtures"});
+    console.log("Elm build.sh output: " + output);
+
     global.browser = await puppeteer.launch({headless: true, slowMo: 100, args: ['--no-sandbox']});
 });
 
