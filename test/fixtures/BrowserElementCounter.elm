@@ -7,11 +7,12 @@ import Html.Events exposing (onClick)
 
 
 main =
-    Browser.element { init = init, view = view, update = update, subscriptions = \_ -> Sub.none }
-
-
-
--- MODEL
+    Browser.element
+        { init = init
+        , view = view
+        , update = update
+        , subscriptions = \_ -> Sub.none
+        }
 
 
 type alias Flags =
@@ -19,16 +20,12 @@ type alias Flags =
 
 
 type alias Model =
-    Int
+    { count : Int }
 
 
-init : { n : Int } -> ( Int, Cmd Msg )
+init : Flags -> ( Model, Cmd Msg )
 init flags =
-    ( flags.n, Cmd.none )
-
-
-
--- UPDATE
+    ( { count = flags.n }, Cmd.none )
 
 
 type Msg
@@ -38,11 +35,9 @@ type Msg
 update msg model =
     case msg of
         Increment ->
-            ( model + 1, Cmd.none )
-
-
-
--- VIEW
+            ( { model | count = model.count + 1 }
+            , Cmd.none
+            )
 
 
 view model =
@@ -50,7 +45,7 @@ view model =
         [ h1 [] [ text "BrowserElementCounter" ]
         , p []
             [ text "Counter value is: "
-            , span [ id "counter-value" ] [ text (String.fromInt model) ]
+            , span [ id "counter-value" ] [ text (String.fromInt model.count) ]
             ]
         , button [ onClick Increment, id "button-plus" ] [ text "+" ]
         ]
