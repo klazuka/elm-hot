@@ -31,7 +31,8 @@ test.beforeEach(async t => {
         console.log("BROWSER: request failed: " + request.url());
     });
     page.on('response', response => {
-        console.log("BROWSER: response: " + response.url() + " " + response.status());
+        if (!response.ok())
+            console.error("BROWSER: response: " + response.url() + " " + response.status());
     });
     t.context.page = page;
 });

@@ -58,7 +58,9 @@ if (useHMR) {
 
         var cancellers = [];
 
-        var initializingInstance = null
+        // These 2 variables act as dynamically-scoped variables which are set only when the
+        // Elm module's hooked init function is called.
+        var initializingInstance = null;
         var swappingInstance = null;
 
         jsModule.hot.accept();
@@ -292,6 +294,13 @@ if (useHMR) {
         // hook program creation
         var initialize = _Platform_initialize
         _Platform_initialize = function (flagDecoder, args, init, update, subscriptions, stepperBuilder) {
+            if (initializingInstance !== null && swappingInstance === null)
+                console.log("Initializing Elm module; initializingInstance=" + JSON.stringify(initializingInstance));
+            else if (initializingInstance === null && swappingInstance !== null)
+                console.log("Re-initializing Elm module during swap; swappingInstance=" + JSON.stringify(swappingInstance));
+            else
+                throw Error("Unexpected state: initializingInstance=" + initializingInstance
+                    + " swappingInstance=" + swappingInstance);
             var instance = initializingInstance
             var swapping = swappingInstance
             var tryFirstRender = !!swappingInstance
@@ -324,13 +333,18 @@ if (useHMR) {
                 }
 
                 return function(nextModel, isSync) {
-                    console.log("hooked stepper invoked with nextModel=" + JSON.stringify(nextModel))
+                    console.log("hooked stepper invoked with nextModel=" + JSON.stringify(nextModel));
                     if (instance) {
                         // capture the state after every step so that later we can restore from it during a hot-swap
+                        console.log("Setting lastState on the current initializing instance");
                         instance.lastState = nextModel
+                    } else if (swapping) {
+                        // capture the state after every step so that later we can restore from it during a hot-swap
+                        // TODO [kl] why did I have to add this case? maybe something about how the Elm stepper is setup now?
+                        console.log("Setting lastState on the current swapping instance");
+                        swapping.lastState = nextModel
                     } else {
-                        // TODO [kl] when can this happen?
-                        instance = swapping
+                        throw Error("Should never happen: no instance to set lastState on!");
                     }
                     return result(nextModel, isSync)
                 }

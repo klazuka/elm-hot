@@ -17,34 +17,53 @@ require('./setup');
 
 
 test('counter HMR preserves count', async t => {
-    await doBasicCounterTest(t, "BrowserElementCounter");
+    await doCounterTest(t, "BrowserElementCounter");
 });
 
 test('ports are reconnected after HMR', async t => {
-    await doBasicCounterTest(t, "MainWithPorts");
+    await doCounterTest(t, "MainWithPorts");
 });
 
-async function doBasicCounterTest(t, testName) {
+async function doCounterTest(t, testName) {
     const page = t.context.page;
     await page.goto(`${t.context.serverUrl}/${testName}.html`);
 
-    t.is(await getCounterValue(page), 0);
-    await incrementCounter(page);
-    t.is(await getCounterValue(page), 1);
+    await stepTheCounter(t, page, 0, 1);
+    await modifyElmIncrementCode(t, testName, page, 1, 10);
+    await stepTheCounter(t, page, 1, 11);
+    await modifyElmIncrementCode(t, testName, page, 10, 20);
+    await stepTheCounter(t, page, 11, 31);
+    await stepTheCounter(t, page, 31, 51);
+    await stepTheCounter(t, page, 51, 71);
+    await modifyElmIncrementCode(t, testName, page, 20, 30);
+    await stepTheCounter(t, page, 71, 101);
+}
 
+
+// TEST BUILDING BLOCKS
+
+
+async function stepTheCounter(t, page, expectedPre, expectedPost) {
+    t.is(await getCounterValue(page), expectedPre);
+    await incrementCounter(page);
+    t.is(await getCounterValue(page), expectedPost);
+}
+
+async function modifyElmIncrementCode(t, testName, page, oldIncrementBy, newIncrementBy) {
     const pathToElmCode = path.join(__dirname, `./fixtures/build/${testName}.js`);
     const elmCode = fs.readFileSync(pathToElmCode, {encoding: "utf8"});
-    const originalIncrementCode = "{count: model.count + 1}),";
-    const modifiedIncrementCode = "{count: model.count + 100}),";
-    fs.writeFileSync(pathToElmCode, elmCode.replace(originalIncrementCode, modifiedIncrementCode));
-    console.log("Finished writing to the compiled Elm file on disk");
+    const originalIncrementCode = `{count: model.count + ${oldIncrementBy}}),`;
+    const modifiedIncrementCode = `{count: model.count + ${newIncrementBy}}),`;
+    const newElmCode = elmCode.replace(originalIncrementCode, modifiedIncrementCode);
+    if (newElmCode === elmCode) {
+        throw Error("Failed to modify the compiled Elm code on disk: pattern not found");
+    }
+    fs.writeFileSync(pathToElmCode, newElmCode);
+    // console.log("Finished writing to the compiled Elm file on disk");
     await page.waitFor(200);
-    console.log("done sleeping");
-
-    t.is(await getCounterValue(page), 1);
-    await incrementCounter(page);
-    t.is(await getCounterValue(page), 101);
+    // console.log("done sleeping");
 }
+
 
 
 // ELM COUNTER MANIPULATION

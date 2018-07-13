@@ -51,7 +51,7 @@ app.get('/stream-:programName', function (req, res) {
 
     watcher.on('change', function(pathThatChanged, stats) {
         if (pathThatChanged.endsWith(programName + ".js")) {
-            console.log("Pushing HMR event to client");
+            //console.log("Pushing HMR event to client");
             const relativeLoadPath = path.relative(pathToTestFixtures, pathThatChanged);
             res.write(`data: ${relativeLoadPath}\n\n`);
         }
