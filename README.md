@@ -1,3 +1,4 @@
+[![CircleCI](https://circleci.com/gh/klazuka/elm-hot.svg?style=svg)](https://circleci.com/gh/klazuka/elm-hot)
 
 Work-in-progress: DO NOT USE
 
