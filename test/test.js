@@ -16,8 +16,16 @@ require('./setup');
 */
 
 
-test('counter HMR preserves count', async t => {
+test('counter HMR preserves count (Browser.element)', async t => {
     await doCounterTest(t, "BrowserElementCounter");
+});
+
+test('counter HMR preserves count (Browser.document)', async t => {
+    await doCounterTest(t, "BrowserDocumentCounter");
+});
+
+test('counter HMR preserves count (Browser.sandbox)', async t => {
+    await doCounterTest(t, "BrowserSandboxCounter");
 });
 
 test('ports are reconnected after HMR', async t => {
@@ -52,8 +60,8 @@ async function stepTheCounter(t, page, expectedPre, expectedPost) {
 async function modifyElmIncrementCode(t, testName, page, oldIncrementBy, newIncrementBy) {
     const pathToElmCode = path.join(__dirname, `./fixtures/build/${testName}.js`);
     const elmCode = fs.readFileSync(pathToElmCode, {encoding: "utf8"});
-    const originalIncrementCode = `{count: model.count + ${oldIncrementBy}}),`;
-    const modifiedIncrementCode = `{count: model.count + ${newIncrementBy}}),`;
+    const originalIncrementCode = `{count: model.count + ${oldIncrementBy}}`;
+    const modifiedIncrementCode = `{count: model.count + ${newIncrementBy}}`;
     const newElmCode = elmCode.replace(originalIncrementCode, modifiedIncrementCode);
     if (newElmCode === elmCode) {
         throw Error("Failed to modify the compiled Elm code on disk: pattern not found");

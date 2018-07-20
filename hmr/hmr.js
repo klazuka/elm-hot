@@ -189,7 +189,11 @@ if (useHMR) {
                     console.log("JS init of Elm module '" + path + "' invoked")
                     var elm;
                     var portSubscribes = {};
-                    initializingInstance = registerInstance(args['node'], args['flags'], path, portSubscribes)
+
+                    // TODO [kl] reconsider how we detect whether we are embedding or going fullscreen.
+                    var domNode = args['node'] || document.body;
+
+                    initializingInstance = registerInstance(domNode, args['flags'], path, portSubscribes)
                     elm = originalInit(args);
                     wrapPorts(elm, portSubscribes)
                     elm = initializingInstance.elmProxy = {

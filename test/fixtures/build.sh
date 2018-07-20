@@ -3,5 +3,5 @@
 
 for filename in *.elm; do
     echo "Compiling $filename"
-    elm make $filename --output=build/"$(basename "$filename" .elm).js"
+    npx elm make $filename --output=build/"$(basename "$filename" .elm).js"
 done
