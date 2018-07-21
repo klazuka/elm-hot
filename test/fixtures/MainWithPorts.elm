@@ -58,5 +58,5 @@ view model =
             [ text "Counter value is: "
             , span [ id "counter-value" ] [ text (String.fromInt model.count) ]
             ]
-        , button [ onClick Increment, id "button-plus" ] [ text "+" ]
+        , button [ onClick Increment, id "counter-button" ] [ text "+" ]
         ]
