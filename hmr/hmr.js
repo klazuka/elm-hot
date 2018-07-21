@@ -295,6 +295,22 @@ if (useHMR) {
             return portSubscribes;
         }
 
+        function findNavKey(model) {
+            for (var key in model) {
+                if (model.hasOwnProperty(key)) {
+                    var value = model[key];
+                    // TODO [kl] talk to Evan about a better way to find this data in the model
+                    if (key === "myNavKey") {
+                        return {value: value, path: key};
+                    }
+                    // if (typeof value === "object" && "$HMR$" in value) {
+                    //     return {value: value, path: key};
+                    // }
+                }
+            }
+            return null;
+        }
+
         // hook program creation
         var initialize = _Platform_initialize
         _Platform_initialize = function (flagDecoder, args, init, update, subscriptions, stepperBuilder) {
@@ -315,7 +331,13 @@ if (useHMR) {
                 if (swappingInstance) {
                     console.log("hot swapping state using previous model=" + JSON.stringify(swappingInstance.lastState))
                     // the heart of the app state hot-swap
+                    var newNavKeyLoc = findNavKey(initialStateTuple.a);
                     initialStateTuple.a = swappingInstance.lastState
+                    if (newNavKeyLoc !== null) {
+                        // TODO [kl] handle nav keys that are deeply nested in the model
+                        console.log("Replacing the Browser.Navigation.Key in the model");
+                        initialStateTuple.a[newNavKeyLoc.path] = newNavKeyLoc.value;
+                    }
                 }
                 return initialStateTuple
             }

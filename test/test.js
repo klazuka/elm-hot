@@ -28,6 +28,28 @@ test('counter HMR preserves count (Browser.sandbox)', async t => {
     await doCounterTest(t, "BrowserSandboxCounter");
 });
 
+test('counter HMR preserves count (Browser.application)', async t => {
+    const testName = "BrowserApplicationCounter";
+    const page = t.context.page;
+    await page.goto(`${t.context.serverUrl}/${testName}.html`);
+
+    await stepTheCounter(t, page, 0, 1, "#incrementer ");
+    await stepTheCounter(t, page, 1, 2, "#incrementer ");
+    await clickLink(page, "#nav-decrement");
+    await stepTheCounter(t, page, 2, 1, "#decrementer ");
+    await modifyElmIncrementCode(t, testName, page, 1, 10, "-");
+    await stepTheCounter(t, page, 1, -9, "#decrementer ");
+    await stepTheCounter(t, page, -9, -19, "#decrementer ");
+    await clickLink(page, "#nav-increment");
+    await stepTheCounter(t, page, -19, -18, "#incrementer ");
+    await modifyElmIncrementCode(t, testName, page, 1, 10, "+");
+    await stepTheCounter(t, page, -18, -8, "#incrementer ");
+    await stepTheCounter(t, page, -8, 2, "#incrementer ");
+    await stepTheCounter(t, page, 2, 12, "#incrementer ");
+    await modifyElmIncrementCode(t, testName, page, 10, 20, "+");
+    await stepTheCounter(t, page, 12, 32, "#incrementer ");
+});
+
 test('multiple Elm Main modules', async t => {
     const testName = "MultiMain";
     const page = t.context.page;
@@ -85,6 +107,13 @@ async function modifyElmIncrementCode(t, testName, page, oldIncrementBy, newIncr
     // console.log("done sleeping");
 }
 
+async function clickLink(page, selector) {
+    // console.log("Clicking link at selector", selector);
+    await Promise.all([
+        page.waitForNavigation({timeout: 5000}),
+        page.click(selector, {delay: 10}),
+    ]);
+}
 
 
 // ELM COUNTER MANIPULATION
@@ -95,8 +124,8 @@ const buttonId = "#counter-button";
 const valueId = "#counter-value";
 
 async function incrementCounter(page, selectorScope) {
-    // console.log("Incrementing the counter");
-    await page.click(selectorScope + buttonId, {delay: "10"});
+    // console.log("Stepping the counter " + selectorScope);
+    await page.click(selectorScope + buttonId, {delay: 10});
 }
 
 async function getCounterValue(page, selectorScope) {

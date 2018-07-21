@@ -13,7 +13,7 @@ test.before(async () => {
 
     global.browser = await puppeteer.launch({
         headless: true,         // default is true; set to false when debugging failed tests
-        slowMo: 100,            // introduce a little delay between each operation
+        slowMo: 50,             // introduce a little delay between each operation
         dumpio: false,          // default is false; set to true when debugging failed tests
         args: ['--no-sandbox']  // required for CI builds
     });
