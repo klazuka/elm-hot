@@ -54,6 +54,7 @@ view : Model -> Html Msg
 view model =
     div []
         [ h1 [] [ text "MainWithPorts" ]
+        , span [ id "code-version" ] [ text "code: v1" ]
         , p []
             [ text "Counter value is: "
             , span [ id "counter-value" ] [ text (String.fromInt model.count) ]

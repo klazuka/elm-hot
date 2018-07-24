@@ -40,11 +40,11 @@ var myDisposeCallback = null;
 var jsModule = {
     hot: {
         accept: function () {
-            console.log("hot.accept() called")
+            // console.log("hot.accept() called")
         },
 
         dispose: function (callback) {
-            console.log("hot.dispose() called; storing callback");
+            // console.log("hot.dispose() called; storing callback");
             myDisposeCallback = callback
         },
 
@@ -56,7 +56,7 @@ var jsModule = {
             console.log("myHotApply()");
             var newData = {};
             myDisposeCallback(newData);
-            console.log("storing disposed hot data " + JSON.stringify(newData));
+            // console.log("storing disposed hot data " + JSON.stringify(newData));
             jsModule.hot.data = newData
         }
 

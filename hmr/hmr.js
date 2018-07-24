@@ -54,8 +54,6 @@ if (useHMR) {
             ? jsModule.hot.data.uid || 0
             : 0;
 
-        console.log("current uid is " + uid + " instances is " + JSON.stringify(instances))
-
         var cancellers = [];
 
         // These 2 variables act as dynamically-scoped variables which are set only when the
@@ -156,7 +154,7 @@ if (useHMR) {
                 flags: flags,
                 portSubscribes: portSubscribes,
                 elmProxy: null,
-                lastState: null, // last elm app state
+                messages: [], // intercepted Elm msg's
                 callbacks: []
             }
 
@@ -169,12 +167,7 @@ if (useHMR) {
 
             instance.dispatch = function (event) {
                 instance.callbacks.forEach(function (cb) {
-                    cb(event, {
-                        flags: instance.flags,
-                        state: '_0' in instance.lastState
-                            ? instance.lastState._0 //debugger state
-                            : instance.lastState //normal state
-                    })
+                    cb(event, {flags: instance.flags})
                 })
             }
 
@@ -227,7 +220,6 @@ if (useHMR) {
                 instance.dispatch('swap') // TODO [kl] does this do anything???
 
                 var flags = instance.flags
-                // TODO [kl] fluxxu used to handle fullscreen init differently here, but I think that has changed in 0.19 rc1
                 elm = m.init({node: domNode, flags: flags});
                 console.log("Swap finished JS init of Elm model")
 
@@ -295,22 +287,6 @@ if (useHMR) {
             return portSubscribes;
         }
 
-        function findNavKey(model) {
-            for (var key in model) {
-                if (model.hasOwnProperty(key)) {
-                    var value = model[key];
-                    // TODO [kl] talk to Evan about a better way to find this data in the model
-                    if (key === "myNavKey") {
-                        return {value: value, path: key};
-                    }
-                    // if (typeof value === "object" && "$HMR$" in value) {
-                    //     return {value: value, path: key};
-                    // }
-                }
-            }
-            return null;
-        }
-
         // hook program creation
         var initialize = _Platform_initialize
         _Platform_initialize = function (flagDecoder, args, init, update, subscriptions, stepperBuilder) {
@@ -321,62 +297,35 @@ if (useHMR) {
             else
                 throw Error("Unexpected state: initializingInstance=" + initializingInstance
                     + " swappingInstance=" + swappingInstance);
-            var instance = initializingInstance
-            var swapping = swappingInstance
-            var tryFirstRender = !!swappingInstance
+
+            var instance = initializingInstance || swappingInstance;
 
             var hookedInit = function (args) {
                 console.log("hooked Elm init called")
-                var initialStateTuple = init(args)
+                var result = init(args)
                 if (swappingInstance) {
-                    console.log("hot swapping state using previous model=" + JSON.stringify(swappingInstance.lastState))
-                    // the heart of the app state hot-swap
-                    var newNavKeyLoc = findNavKey(initialStateTuple.a);
-                    initialStateTuple.a = swappingInstance.lastState
-                    if (newNavKeyLoc !== null) {
-                        // TODO [kl] handle nav keys that are deeply nested in the model
-                        console.log("Replacing the Browser.Navigation.Key in the model");
-                        initialStateTuple.a[newNavKeyLoc.path] = newNavKeyLoc.value;
+                    var messages = swappingInstance.messages
+                    console.log("replaying messages: " + JSON.stringify(messages))
+                    for (var i = 0; i < messages.length; i++) {
+                        var msg = messages[i];
+                        var model = result.a;
+                        console.log("oldModel = " + JSON.stringify(result.a))
+                        result = A2(update, msg, model);
+                        console.log("newModel = " + JSON.stringify(result.a))
                     }
                 }
-                return initialStateTuple
+                console.log("final model = " + JSON.stringify(result.a))
+                return result
             }
 
-            var hookedStepperBuilder = function (sendToApp, model) {
-                console.log("hookedStepperBuilder() invoked with initial model=" + JSON.stringify(model))
-                var result;
-                // first render may fail if shape of model changed too much
-                if (tryFirstRender) {
-                    tryFirstRender = false
-                    try {
-                        // TODO [kl] verify that this try-catch is actually still useful in Elm 0.19
-                        result = stepperBuilder(sendToApp, model)
-                    } catch (e) {
-                        throw new Error('[elm-hot] Hot-swapping is not possible, please reload page. Error: ' + e.message)
-                    }
-                } else {
-                    result = stepperBuilder(sendToApp, model)
-                }
+            var hookedUpdate = F2(
+                function (msg, model) {
+                    // console.log("hooked Elm update called; msg=" + JSON.stringify(msg));
+                    instance.messages.push(msg);
+                    return A2(update, msg, model);
+                });
 
-                return function(nextModel, isSync) {
-                    console.log("hooked stepper invoked with nextModel=" + JSON.stringify(nextModel));
-                    if (instance) {
-                        // capture the state after every step so that later we can restore from it during a hot-swap
-                        console.log("Setting lastState on the current initializing instance");
-                        instance.lastState = nextModel
-                    } else if (swapping) {
-                        // capture the state after every step so that later we can restore from it during a hot-swap
-                        // TODO [kl] why did I have to add this case? maybe something about how the Elm stepper is setup now?
-                        console.log("Setting lastState on the current swapping instance");
-                        swapping.lastState = nextModel
-                    } else {
-                        throw Error("Should never happen: no instance to set lastState on!");
-                    }
-                    return result(nextModel, isSync)
-                }
-            };
-
-            return initialize(flagDecoder, args, hookedInit, update, subscriptions, hookedStepperBuilder)
+            return initialize(flagDecoder, args, hookedInit, hookedUpdate, subscriptions, stepperBuilder)
         }
 
         // hook process creation

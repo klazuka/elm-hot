@@ -43,6 +43,7 @@ update msg model =
 view model =
     div []
         [ h1 [] [ text "BrowserElementCounter" ]
+        , span [ id "code-version" ] [ text "code: v1" ]
         , p []
             [ text "Counter value is: "
             , span [ id "counter-value" ] [ text (String.fromInt model.count) ]

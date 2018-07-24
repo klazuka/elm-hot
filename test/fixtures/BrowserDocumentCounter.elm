@@ -44,6 +44,7 @@ view model =
     { title = "BrowserDocumentCounter"
     , body =
         [ h1 [] [ text "BrowserDocumentCounter" ]
+        , span [ id "code-version" ] [ text "code: v1" ]
         , p []
             [ text "Counter value is: "
             , span [ id "counter-value" ] [ text (String.fromInt model.count) ]
