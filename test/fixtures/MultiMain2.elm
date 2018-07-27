@@ -36,7 +36,7 @@ update msg model =
 view model =
     div [ id "decrementer" ]
         [ h1 [] [ text "MultiMain2" ]
-        , span [ id "code-version" ] [ text "code: v1" ]
+        , span [ id "code-version" ] [ text "code: dec-v1" ]
         , p []
             [ text "Counter value is: "
             , span [ id "counter-value" ] [ text (String.fromInt model.count) ]

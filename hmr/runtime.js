@@ -22,12 +22,15 @@ function connect(programName) {
         var myRequest = new Request(reloadUrl);
         myRequest.cache = "no-cache";
         fetch(myRequest).then(function (response) {
-            console.log(response.status + " " + response.statusText);
-            response.text().then(function (value) {
-                jsModule.hot.myHotApply();
-                delete Elm;
-                eval(value)
-            })
+            if (response.ok) {
+                response.text().then(function (value) {
+                    jsModule.hot.myHotApply();
+                    delete Elm;
+                    eval(value)
+                });
+            } else {
+                console.error("HMR fetch failed:", response.status, response.statusText);
+            }
         })
     };
 }

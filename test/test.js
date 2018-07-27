@@ -59,7 +59,7 @@ test('counter HMR preserves count (Browser.application)', async t => {
     await stepTheCounter(t, page, 4, inc);
 });
 
-test.skip('multiple Elm Main modules', async t => {
+test('multiple Elm Main modules', async t => {
     const testName = "MultiMain";
     const page = t.context.page;
     await page.goto(`${t.context.serverUrl}/${testName}.html`);
@@ -68,20 +68,22 @@ test.skip('multiple Elm Main modules', async t => {
     const dec = "#decrementer ";
 
     // interleave various updates to the 2 separate Elm apps
-    await checkCodeVersion(t, page, "v1", inc);
-    await checkCodeVersion(t, page, "v1", dec);
+    // one app increments a counter; the other decrements
+    // each app has its own counter value.
+    await checkCodeVersion(t, page, "inc-v1", inc);
+    await checkCodeVersion(t, page, "dec-v1", dec);
     await stepTheCounter(t, page, 1, inc);
-    await modifyElmCode(t, testName, page, "v1", "v2", inc);
+    await modifyElmCode(t, testName, page, "inc-v1", "inc-v2", inc);
     await stepTheCounter(t, page, 2, inc);
     await stepTheCounter(t, page, 3, inc);
-    await modifyElmCode(t, testName, page, "v1", "v2", dec);
+    await modifyElmCode(t, testName, page, "dec-v1", "dec-v2", dec);
     await stepTheCounter(t, page, -1, dec);
     await stepTheCounter(t, page, 4, inc);
-    await modifyElmCode(t, testName, page, "v2", "v3", inc);
+    await modifyElmCode(t, testName, page, "inc-v2", "inc-v3", inc);
     await stepTheCounter(t, page, 5, inc);
     await stepTheCounter(t, page, -2, dec);
-    await modifyElmCode(t, testName, page, "v3", "v4", inc);
-    await modifyElmCode(t, testName, page, "v2", "v3", dec);
+    await modifyElmCode(t, testName, page, "inc-v3", "inc-v4", inc);
+    await modifyElmCode(t, testName, page, "dec-v2", "dec-v3", dec);
     await stepTheCounter(t, page, -3, dec);
     await stepTheCounter(t, page, 6, inc);
 });
@@ -118,7 +120,7 @@ async function stepTheCounter(t, page, expectedPost, selectorScope = "") {
     t.is(await getCounterValue(page, selectorScope), expectedPost);
 }
 
-async function modifyElmCode(t, testName, page, oldVersion, newVersion) {
+async function modifyElmCode(t, testName, page, oldVersion, newVersion, selectorScope = "") {
     const pathToElmCode = path.join(__dirname, `./fixtures/build/${testName}.js`);
     const elmCode = fs.readFileSync(pathToElmCode, {encoding: "utf8"});
     const originalFragment = `elm$html$Html$text('code: ${oldVersion}')`;
@@ -132,7 +134,7 @@ async function modifyElmCode(t, testName, page, oldVersion, newVersion) {
     await page.waitFor(200);
     // console.log("done sleeping");
 
-    await checkCodeVersion(t, page, newVersion);
+    await checkCodeVersion(t, page, newVersion, selectorScope);
 }
 
 async function clickLink(page, selector) {
@@ -166,6 +168,6 @@ async function getCounterValue(page, selectorScope) {
 async function checkCodeVersion(t, page, expectedVersion, selectorScope = "") {
     const value = await page.$eval(selectorScope + codeVersionId, el => el.innerText);
     // console.log("Current code version is " + value);
-    t.is(value, `code: ${expectedVersion}`)
+    t.is(value, `code: ${expectedVersion}`);
     return value;
 }
