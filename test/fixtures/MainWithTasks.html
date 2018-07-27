@@ -1,0 +1,21 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Main</title>
+    <script type="text/javascript" src="runtime.js"></script>
+    <script type="text/javascript" src="build/MainWithTasks.js"></script>
+</head>
+
+<body>
+<div id="root">
+    <div id="embed">to be filled out later</div>
+</div>
+<script>
+    connect("MainWithTasks");
+    Elm.MainWithTasks.init({
+        node: document.getElementById('embed')
+    });
+</script>
+</body>
+</html>
