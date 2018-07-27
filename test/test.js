@@ -28,29 +28,38 @@ test('counter HMR preserves count (Browser.sandbox)', async t => {
     await doCounterTest(t, "BrowserSandboxCounter");
 });
 
-test.skip('counter HMR preserves count (Browser.application)', async t => {
+test('counter HMR preserves count (Browser.application)', async t => {
     const testName = "BrowserApplicationCounter";
     const page = t.context.page;
     await page.goto(`${t.context.serverUrl}/${testName}.html`);
 
-    await stepTheCounter(t, page, 0, 1, "#incrementer ");
-    await stepTheCounter(t, page, 1, 2, "#incrementer ");
+    const inc = "#incrementer ";
+    const dec = "#decrementer ";
+
+    await checkCodeVersion(t, page, "v1");
+    await stepTheCounter(t, page, 1, inc);
+    await stepTheCounter(t, page, 2, inc);
+    await stepTheCounter(t, page, 3, inc);
     await clickLink(page, "#nav-decrement");
-    await stepTheCounter(t, page, 2, 1, "#decrementer ");
-    await modifyElmCode(t, testName, page, 1, 10, "-");
-    await stepTheCounter(t, page, 1, -9, "#decrementer ");
-    await stepTheCounter(t, page, -9, -19, "#decrementer ");
+    await stepTheCounter(t, page, 2, dec);
+    await modifyElmCode(t, testName, page, "v1", "v2");
+    await stepTheCounter(t, page, 1, dec);
     await clickLink(page, "#nav-increment");
-    await stepTheCounter(t, page, -19, -18, "#incrementer ");
-    await modifyElmCode(t, testName, page, 1, 10, "+");
-    await stepTheCounter(t, page, -18, -8, "#incrementer ");
-    await stepTheCounter(t, page, -8, 2, "#incrementer ");
-    await stepTheCounter(t, page, 2, 12, "#incrementer ");
-    await modifyElmCode(t, testName, page, 10, 20, "+");
-    await stepTheCounter(t, page, 12, 32, "#incrementer ");
+    await stepTheCounter(t, page, 2, inc);
+    await modifyElmCode(t, testName, page, "v2", "v3");
+    await stepTheCounter(t, page, 3, inc);
+    await stepTheCounter(t, page, 4, inc);
+    await modifyElmCode(t, testName, page, "v3", "v4");
+    await stepTheCounter(t, page, 5, inc);
+    await modifyElmCode(t, testName, page, "v4", "v5");
+    await clickLink(page, "#nav-decrement");
+    await stepTheCounter(t, page, 4, dec);
+    await stepTheCounter(t, page, 3, dec);
+    await clickLink(page, "#nav-increment");
+    await stepTheCounter(t, page, 4, inc);
 });
 
-test('multiple Elm Main modules', async t => {
+test.skip('multiple Elm Main modules', async t => {
     const testName = "MultiMain";
     const page = t.context.page;
     await page.goto(`${t.context.serverUrl}/${testName}.html`);
@@ -105,8 +114,6 @@ async function doCounterTest(t, testName) {
 
 
 async function stepTheCounter(t, page, expectedPost, selectorScope = "") {
-    const expectedPre = expectedPost + (expectedPost >= 0 ? -1 : 1);
-    t.is(await getCounterValue(page, selectorScope), expectedPre);
     await incrementCounter(page, selectorScope);
     t.is(await getCounterValue(page, selectorScope), expectedPost);
 }
@@ -125,7 +132,7 @@ async function modifyElmCode(t, testName, page, oldVersion, newVersion) {
     await page.waitFor(200);
     // console.log("done sleeping");
 
-    await checkCodeVersion(t, page, `code: ${newVersion}`);
+    await checkCodeVersion(t, page, newVersion);
 }
 
 async function clickLink(page, selector) {
@@ -156,8 +163,9 @@ async function getCounterValue(page, selectorScope) {
     return value;
 }
 
-async function checkCodeVersion(t, page, expectedPost, selectorScope = "") {
+async function checkCodeVersion(t, page, expectedVersion, selectorScope = "") {
     const value = await page.$eval(selectorScope + codeVersionId, el => el.innerText);
     // console.log("Current code version is " + value);
+    t.is(value, `code: ${expectedVersion}`)
     return value;
 }

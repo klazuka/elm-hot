@@ -100,38 +100,37 @@ loadPage url model =
 
 
 view model =
-    case model.page of
-        Incrementer ->
-            { title = "Incrementer"
-            , body =
-                [ div [ id "incrementer" ]
-                    [ h1 [] [ text "Incrementer" ]
-                    , p []
-                        [ text "Counter value is: "
-                        , span [ id "counter-value" ] [ text (String.fromInt model.count) ]
+    let
+        pageBody =
+            case model.page of
+                Incrementer ->
+                    div [ id "incrementer" ]
+                        [ h1 [] [ text "Incrementer" ]
+                        , p []
+                            [ text "Counter value is: "
+                            , span [ id "counter-value" ] [ text (String.fromInt model.count) ]
+                            ]
+                        , button [ onClick Increment, id "counter-button" ] [ text "+" ]
+                        , p [] [ text "Switch to ", a [ id "nav-decrement", href "#/decrementer" ] [ text "decrementer" ] ]
                         ]
-                    , button [ onClick Increment, id "counter-button" ] [ text "+" ]
-                    , p [] [ text "Switch to ", a [ id "nav-decrement", href "#/decrementer" ] [ text "decrementer" ] ]
-                    ]
-                ]
-            }
 
-        Decrementer ->
-            { title = "Decrementer"
-            , body =
-                [ div [ id "decrementer" ]
-                    [ h1 [] [ text "Decrementer" ]
-                    , p []
-                        [ text "Counter value is: "
-                        , span [ id "counter-value" ] [ text (String.fromInt model.count) ]
+                Decrementer ->
+                    div [ id "decrementer" ]
+                        [ h1 [] [ text "Decrementer" ]
+                        , p []
+                            [ text "Counter value is: "
+                            , span [ id "counter-value" ] [ text (String.fromInt model.count) ]
+                            ]
+                        , button [ onClick Decrement, id "counter-button" ] [ text "-" ]
+                        , p [] [ text "Switch to ", a [ id "nav-increment", href "#/incrementer" ] [ text "incrementer" ] ]
                         ]
-                    , button [ onClick Decrement, id "counter-button" ] [ text "-" ]
-                    , p [] [ text "Switch to ", a [ id "nav-increment", href "#/incrementer" ] [ text "incrementer" ] ]
-                    ]
-                ]
-            }
 
-        NotFound ->
-            { title = "Page Not Found"
-            , body = [ text "Page not found" ]
-            }
+                NotFound ->
+                    text "Page not found"
+    in
+    { title = "BrowserApplicationCounter"
+    , body =
+        [ span [ id "code-version" ] [ text "code: v1" ]
+        , pageBody
+        ]
+    }
