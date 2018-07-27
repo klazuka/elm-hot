@@ -67,7 +67,7 @@ if (useHMR) {
             data.instances = instances;
             data.uid = uid;
 
-            // disable current instance
+            // kill running processes belonging to the disposed instance
             // TODO [kl] fix this
             // _elm_lang$core$Native_Scheduler.nativeBinding = function() {
             //     return _elm_lang$core$Native_Scheduler.fail(new Error('[elm-hot] Inactive Elm instance.'))
@@ -153,22 +153,8 @@ if (useHMR) {
                 domNode: domNode,
                 flags: flags,
                 portSubscribes: portSubscribes,
-                elmProxy: null,
                 messages: [], // intercepted Elm msg's
                 callbacks: []
-            }
-
-            instance.subscribe = function (cb) {
-                instance.callbacks.push(cb)
-                return function () {
-                    instance.callbacks.splice(instance.callbacks.indexOf(cb), 1)
-                }
-            }
-
-            instance.dispatch = function (event) {
-                instance.callbacks.forEach(function (cb) {
-                    cb(event, {flags: instance.flags})
-                })
             }
 
             console.log("Registering instance: " + JSON.stringify(instance) + " for id " + id)
@@ -188,13 +174,7 @@ if (useHMR) {
 
                     initializingInstance = registerInstance(domNode, args['flags'], path, portSubscribes)
                     elm = originalInit(args);
-                    wrapPorts(elm, portSubscribes)
-                    elm = initializingInstance.elmProxy = {
-                        ports: elm.ports,
-                        hot: {
-                            subscribe: initializingInstance.subscribe
-                        }
-                    };
+                    wrapPorts(elm, portSubscribes);
                     initializingInstance = null;
                     return elm;
                 };
@@ -217,13 +197,9 @@ if (useHMR) {
             var m = getPublicModule(Elm, instance.path)
             var elm;
             if (m) {
-                instance.dispatch('swap') // TODO [kl] does this do anything???
-
                 var flags = instance.flags
                 elm = m.init({node: domNode, flags: flags});
                 console.log("Swap finished JS init of Elm model")
-
-                instance.elmProxy.ports = elm.ports;
 
                 Object.keys(instance.portSubscribes).forEach(function(portName) {
                     if (portName in elm.ports && 'subscribe' in elm.ports[portName]) {
