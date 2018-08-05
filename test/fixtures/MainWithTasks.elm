@@ -31,11 +31,16 @@ type Msg
     | FinishedSleeping (Result String ())
 
 
+millisToSleep =
+    {- IMPORTANT: this MUST be in sync with the integration test -}
+    5000
+
+
 update msg model =
-    case Debug.log "msg" msg of
+    case msg of
         Increment ->
             ( model
-            , Task.attempt FinishedSleeping (Process.sleep 10000)
+            , Task.attempt FinishedSleeping (Process.sleep millisToSleep)
             )
 
         FinishedSleeping result ->
@@ -52,7 +57,7 @@ update msg model =
 view model =
     div []
         [ h1 [] [ text "MainWithTasks" ]
-        , span [ id "code-version" ] [ text "code: v5" ]
+        , span [ id "code-version" ] [ text "code: v1" ]
         , p []
             [ text "Counter value is: "
             , span [ id "counter-value" ] [ text (String.fromInt model.count) ]

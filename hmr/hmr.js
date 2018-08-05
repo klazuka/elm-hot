@@ -67,12 +67,15 @@ if (useHMR) {
             data.instances = instances;
             data.uid = uid;
 
-            // kill running processes belonging to the disposed instance
-            // TODO [kl] fix this
-            // _elm_lang$core$Native_Scheduler.nativeBinding = function() {
-            //     return _elm_lang$core$Native_Scheduler.fail(new Error('[elm-hot] Inactive Elm instance.'))
-            // }
+            // Cleanup pending async tasks
 
+            // First, make sure that no new tasks can be started until we finish replacing the code
+            _Scheduler_binding = function () {
+                console.log("hooked _Scheduler_binding called: failing immediately");
+                return _Scheduler_fail(new Error('[elm-hot] Inactive Elm instance.'))
+            };
+
+            // Second, kill pending tasks belonging to the old instance
             if (cancellers.length) {
                 console.log('[elm-hot] Killing ' + cancellers.length + ' running processes...');
                 try {
@@ -285,12 +288,14 @@ if (useHMR) {
                     for (var i = 0; i < messages.length; i++) {
                         var msg = messages[i];
                         var model = result.a;
-                        console.log("oldModel = " + JSON.stringify(result.a))
+                        // console.log("oldModel = " + JSON.stringify(result.a))
                         result = A2(update, msg, model);
-                        console.log("newModel = " + JSON.stringify(result.a))
+                        // console.log("newModel = " + JSON.stringify(result.a))
                     }
+                    // ensure that we don't replay any Cmds
+                    result.b = elm$core$Platform$Cmd$none;
                 }
-                console.log("final model = " + JSON.stringify(result.a))
+                console.log("final model = " + JSON.stringify(result.a));
                 return result
             }
 
@@ -305,24 +310,22 @@ if (useHMR) {
         }
 
         // hook process creation
-        // TODO [kl] re-enable
-        // var nativeBinding = _elm_lang$core$Native_Scheduler.nativeBinding
-        // _elm_lang$core$Native_Scheduler.nativeBinding = function() {
-        //     var def = nativeBinding.apply(this, arguments);
-        //     var callback = def.callback
-        //     def.callback = function() {
-        //         var result = callback.apply(this, arguments)
-        //         if (result) {
-        //             cancellers.push(result);
-        //             return function() {
-        //                 cancellers.splice(cancellers.indexOf(result), 1);
-        //                 return result();
-        //             };
-        //         }
-        //         return result;
-        //     };
-        //     return def;
-        // };
+        var originalBinding = _Scheduler_binding;
+        _Scheduler_binding = function (originalCallback) {
+            return originalBinding(function () {
+                // start the scheduled process, which may return a cancellation function.
+                var cancel = originalCallback.apply(this, arguments);
+                if (cancel) {
+                    console.log("started a cancelable process: registering the canceler");
+                    cancellers.push(cancel);
+                    return function () {
+                        cancellers.splice(cancellers.indexOf(cancel), 1);
+                        return cancel();
+                    };
+                }
+                return cancel;
+            });
+        };
 
         scope['_elm_hot_loader_init'] = function (Elm) {
             console.log("_elm_hot_loader_init() with existing instances: " + JSON.stringify(instances))

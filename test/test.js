@@ -88,6 +88,31 @@ test('multiple Elm Main modules', async t => {
     await stepTheCounter(t, page, 6, inc);
 });
 
+test('pending async tasks are cancelled when HMR is performed', async t => {
+    const testName = "MainWithTasks";
+    const page = t.context.page;
+    await page.goto(`${t.context.serverUrl}/${testName}.html`);
+    const sleepyTaskMillis = 5000; // this MUST be in sync with the code in `MainWithTasks.elm`
+    const slop = 500; // additional millis to wait just to make sure that everything has completed
+
+    await checkCodeVersion(t, page, "v1");
+    t.is(await getCounterValue(page), 0);
+
+    // trigger sleepy increment but do HMR halfway through, cancelling the increment
+    await incrementCounter(page);
+    t.is(await getCounterValue(page), 0); // still 0 because the increment is async
+    await page.waitFor(sleepyTaskMillis / 2);
+    await modifyElmCode(t, testName, page, "v1", "v2");
+    await page.waitFor((sleepyTaskMillis / 2) + slop);
+    t.is(await getCounterValue(page), 0); // should still be 0 because the increment was cancelled
+
+    // trigger sleepy increment but this time allow it to complete
+    await incrementCounter(page);
+    await page.waitFor(sleepyTaskMillis + slop);
+    t.is(await getCounterValue(page), 1); // should now be 1 because the increment had time to finish
+    await modifyElmCode(t, testName, page, "v2", "v3");
+});
+
 test('ports are reconnected after HMR', async t => {
     await doCounterTest(t, "MainWithPorts");
 });
@@ -154,12 +179,12 @@ const buttonId = "#counter-button";
 const valueId = "#counter-value";
 const codeVersionId = "#code-version";
 
-async function incrementCounter(page, selectorScope) {
+async function incrementCounter(page, selectorScope = "") {
     // console.log("Stepping the counter " + selectorScope);
     await page.click(selectorScope + buttonId, {delay: 10});
 }
 
-async function getCounterValue(page, selectorScope) {
+async function getCounterValue(page, selectorScope = "") {
     const value = await page.$eval(selectorScope + valueId, el => parseInt(el.innerText));
     // console.log("Current counter value is " + value);
     return value;
