@@ -34,5 +34,13 @@ jobs:
             - node_modules
           key: v1-dependencies-{{ checksum "package.json" }}
 
-      # run tests!
-      - run: npm test
+      # run AVA tests
+      - run:
+          command: |
+            mkdir -p ~/reports
+            npx ava --tap | npx tap-xunit > ~/reports/ava.xml
+          when: always
+      - store_test_results:
+          path: ~/reports
+      - store_artifacts:
+          path: ~/reports
