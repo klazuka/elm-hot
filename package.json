@@ -11,7 +11,8 @@
   "ava": {
     "files": [
       "test/**/*.js",
-      "!test/setup.js"
+      "!test/setup.js",
+      "!test/example-webpack/**"
     ]
   },
   "devDependencies": {

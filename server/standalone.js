@@ -4,6 +4,8 @@ const fs = require('fs');
 const chokidar = require('chokidar');
 const app = express();
 
+const util = require('../util.js');
+
 const pathToTestFixtures = path.join(__dirname, "../test/fixtures");
 const pathToBuildDir = path.join(pathToTestFixtures, "build");
 
@@ -26,17 +28,7 @@ app.get('/build/:filename.js', function (req, res) {
     const pathToElmCodeJS = path.join(pathToBuildDir, filename);
     const originalElmCodeJS = fs.readFileSync(pathToElmCodeJS);
     const hmrCode = fs.readFileSync(path.join(__dirname, "../hmr/hmr.js"));
-
-    const regex = /(_Platform_export\([^]*)(}\(this\)\);)/;
-    const match = regex.exec(originalElmCodeJS);
-
-    if (match === null) {
-        throw new Error("Compiled JS from the Elm compiler is not valid. Version mismatch?");
-    }
-
-    const fullyInjectedCode = originalElmCodeJS.slice(0, match.index)
-        + match[1] + "\n\n" + hmrCode + "\n\n" + match[2];
-
+    const fullyInjectedCode = util.inject(hmrCode, originalElmCodeJS);
     res.send(fullyInjectedCode);
 });
 
