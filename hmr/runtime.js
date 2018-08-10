@@ -24,7 +24,7 @@ function connect(programName) {
         fetch(myRequest).then(function (response) {
             if (response.ok) {
                 response.text().then(function (value) {
-                    jsModule.hot.myHotApply();
+                    module.hot.apply();
                     delete Elm;
                     eval(value)
                 });
@@ -39,8 +39,8 @@ function connect(programName) {
 
 var myDisposeCallback = null;
 
-// TODO [kl] or alias it to module if running in Webpack
-var jsModule = {
+// simulate the HMR api exposed by webpack
+var module = {
     hot: {
         accept: function () {
             // console.log("hot.accept() called")
@@ -53,14 +53,12 @@ var jsModule = {
 
         data: null,
 
-        // only needed when running without webpack
-        // TODO [kl] don't call this if you are running in a webpack environment
-        myHotApply: function () {
-            console.log("myHotApply()");
+        apply: function () {
+            // console.log("apply()");
             var newData = {};
             myDisposeCallback(newData);
             // console.log("storing disposed hot data " + JSON.stringify(newData));
-            jsModule.hot.data = newData
+            module.hot.data = newData
         }
 
     }

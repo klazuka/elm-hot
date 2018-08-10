@@ -5,11 +5,19 @@
   Original Author: Flux Xu @fluxxu
 */
 
-// TODO [kl] only enable HMR when user opts-in
-var useHMR = true;
+/*
+    A note about the environment that this code runs in...
 
-if (useHMR) {
-    (function(jsModule) {
+    assumed globals:
+        - `module` (from Node.js module system and webpack)
+
+    assumed in scope after injection into the Elm IIFE:
+        - `scope` (has an 'Elm' property which contains the public API)
+        - various functions defined by Elm which we have to hook such as `_Platform_initialize` and `_Scheduler_binding`
+ */
+
+if (module.hot) {
+    (function () {
         "use strict";
 
         var version = detectElmVersion()
@@ -47,11 +55,11 @@ if (useHMR) {
         }
 
 
-        var instances = jsModule.hot.data
-            ? jsModule.hot.data.instances || {}
+        var instances = module.hot.data
+            ? module.hot.data.instances || {}
             : {};
-        var uid = jsModule.hot.data
-            ? jsModule.hot.data.uid || 0
+        var uid = module.hot.data
+            ? module.hot.data.uid || 0
             : 0;
 
         var cancellers = [];
@@ -61,8 +69,8 @@ if (useHMR) {
         var initializingInstance = null;
         var swappingInstance = null;
 
-        jsModule.hot.accept();
-        jsModule.hot.dispose(function(data) {
+        module.hot.accept();
+        module.hot.dispose(function (data) {
             console.log("running the callback given to dispose")
             data.instances = instances;
             data.uid = uid;
@@ -353,7 +361,7 @@ if (useHMR) {
                 wrapPublicModule(m.path, m.module);
             });
         }
-    })(jsModule);
+    })();
 }
 //////////////////// HMR END ////////////////////
-_elm_hot_loader_init(scope['Elm'])
+scope['_elm_hot_loader_init'](scope['Elm'])

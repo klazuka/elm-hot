@@ -1,4 +1,5 @@
-var path = require('path');
+const path = require('path');
+const webpack = require('webpack');
 
 module.exports = {
     module: {
@@ -29,8 +30,13 @@ module.exports = {
         ]
     },
 
+    plugins: [
+        new webpack.HotModuleReplacementPlugin()
+    ],
+
     devServer: {
         inline: true,
+        hot: true,
         stats: 'errors-only'
     }
 };
