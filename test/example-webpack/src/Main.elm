@@ -38,6 +38,7 @@ update msg model =
 view model =
     div []
         [ p [] [ text hello ]
+        , span [ id "code-version" ] [ text "code: v1" ]
         , p []
             [ text "Counter value is: "
             , span [ id "counter-value" ] [ text (String.fromInt model.count) ]

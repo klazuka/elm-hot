@@ -324,7 +324,7 @@ if (module.hot) {
                 // start the scheduled process, which may return a cancellation function.
                 var cancel = originalCallback.apply(this, arguments);
                 if (cancel) {
-                    console.log("started a cancelable process: registering the canceler");
+                    // console.log("started a cancelable process: registering the canceler");
                     cancellers.push(cancel);
                     return function () {
                         cancellers.splice(cancellers.indexOf(cancel), 1);
