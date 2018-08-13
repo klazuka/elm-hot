@@ -12,8 +12,15 @@ for filename in *.elm; do
         continue
     fi
 
+    extraArgs=""
+
+    if [[ $filename == Debug* ]] ;
+    then
+        extraArgs="--debug"
+    fi
+
     echo "Compiling $filename"
-    npx elm make $filename --output=build/"$(basename "$filename" .elm).js"
+    npx elm make $filename --output=build/"$(basename "$filename" .elm).js" ${extraArgs}
 done
 
 echo "Compiling MultiMain1.elm and MultiMain2.elm"
