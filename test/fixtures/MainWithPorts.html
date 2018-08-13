@@ -8,19 +8,17 @@
 </head>
 
 <body>
-<div id="root">
 	<div id="embed">to be filled out later</div>
-</div>
-<script>
-    connect("MainWithPorts");
-    var app = Elm.MainWithPorts.init({
-        node: document.getElementById('embed'),
-        flags: {}
-    });
+	<script>
+		connect("MainWithPorts");
+		var app = Elm.MainWithPorts.init({
+			node: document.getElementById('embed'),
+			flags: {}
+		});
 
-    app.ports.toJavaScript.subscribe(function (n) {
-        app.ports.fromJavaScript.send(n);
-    });
-</script>
+		app.ports.toJavaScript.subscribe(function (n) {
+			app.ports.fromJavaScript.send(n);
+		});
+	</script>
 </body>
 </html>
