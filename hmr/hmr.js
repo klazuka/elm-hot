@@ -155,7 +155,7 @@ if (module.hot) {
             return parent
         }
 
-        function registerInstance(domNode, flags, path, portSubscribes) {
+        function registerInstance(domNode, flags, path, portSubscribes, portSends) {
             var id = getId();
 
             var instance = {
@@ -164,12 +164,37 @@ if (module.hot) {
                 domNode: domNode,
                 flags: flags,
                 portSubscribes: portSubscribes,
-                messages: [], // intercepted Elm msg's
+                portSends: portSends,
+                messages: [], // intercepted, top-level Elm messages
                 callbacks: []
             }
 
             console.log("Registering instance: " + JSON.stringify(instance) + " for id " + id)
             return instances[id] = instance
+        }
+
+        function wrapDomNode(node) {
+            // When embedding an Elm app into a specific DOM node, Elm will replace the provided
+            // DOM node with the Elm app's content. When the Elm app is compiled normally, the
+            // original DOM node is reused (its attributes and content changes, but the object
+            // in memory remains the same). But when compiled using `--debug`, Elm will completely
+            // destroy the original DOM node and instead replace it with 2 brand new nodes: one
+            // for your Elm app's content and the other for the Elm debugger UI. In this case,
+            // if you held a reference to the DOM node provided for embedding, it would be orphaned
+            // after Elm module initialization.
+            //
+            // So in order to make both cases consistent and isolate us from changes in how Elm
+            // does this, we will insert a dummy node to wrap the node for embedding and hold
+            // a reference to the dummy node.
+            //
+            // We will also put a tag on the dummy node so that the Elm developer knows who went
+            // behind their back and rudely put stuff in their DOM.
+            var dummyNode = document.createElement("div");
+            dummyNode.setAttribute("data-elm-hot", "true");
+            var parentNode = node.parentNode;
+            parentNode.replaceChild(dummyNode, node);
+            dummyNode.appendChild(node);
+            return dummyNode;
         }
 
         function wrapPublicModule(path, module) {
@@ -179,13 +204,11 @@ if (module.hot) {
                     console.log("JS init of Elm module '" + path + "' invoked")
                     var elm;
                     var portSubscribes = {};
-
-                    // TODO [kl] reconsider how we detect whether we are embedding or going fullscreen.
-                    var domNode = args['node'] || document.body;
-
-                    initializingInstance = registerInstance(domNode, args['flags'], path, portSubscribes)
+                    var portSends = {};
+                    var domNode = args['node'] ? wrapDomNode(args['node']) : document.body;
+                    initializingInstance = registerInstance(domNode, args['flags'], path, portSubscribes, portSends)
                     elm = originalInit(args);
-                    wrapPorts(elm, portSubscribes);
+                    wrapPorts(elm, portSubscribes, portSends);
                     initializingInstance = null;
                     return elm;
                 };
@@ -199,18 +222,28 @@ if (module.hot) {
 
             swappingInstance = instance;
 
-            var domNode = instance.domNode;
-
-            while (domNode.lastChild) {
-                domNode.removeChild(domNode.lastChild);
+            // remove from the DOM everything that had been created by the old Elm app
+            var containerNode = instance.domNode;
+            while (containerNode.lastChild) {
+                containerNode.removeChild(containerNode.lastChild);
             }
 
             var m = getPublicModule(Elm, instance.path)
             var elm;
             if (m) {
-                var flags = instance.flags
-                elm = m.init({node: domNode, flags: flags});
-                console.log("Swap finished JS init of Elm model")
+                // prepare to initialize the new Elm module
+                var args = { flags: instance.flags };
+                if (containerNode === document.body) {
+                    // fullscreen case: no additional args needed
+                } else {
+                    // embed case: provide a new node for Elm to use
+                    var nodeForEmbed = document.createElement("div");
+                    containerNode.appendChild(nodeForEmbed);
+                    args['node'] = nodeForEmbed;
+                }
+
+                elm = m.init(args);
+                console.log("Swap finished JS init of Elm model");
 
                 Object.keys(instance.portSubscribes).forEach(function(portName) {
                     if (portName in elm.ports && 'subscribe' in elm.ports[portName]) {
@@ -228,6 +261,16 @@ if (module.hot) {
                         console.log('[elm-hot] Port was removed: ' + portName);
                     }
                 });
+
+                Object.keys(instance.portSends).forEach(function(portName) {
+                    if (portName in elm.ports && 'send' in elm.ports[portName]) {
+                        console.log('[elm-hot] Replace old port send with the new send');
+                        instance.portSends[portName] = elm.ports[portName].send;
+                    } else {
+                        delete instance.portSends[portName];
+                        console.log('[elm-hot] Port was removed: ' + portName);
+                    }
+                });
             } else {
                 console.log('[elm-hot] Module was removed: ' + instance.path);
             }
@@ -235,10 +278,11 @@ if (module.hot) {
             swappingInstance = null;
         }
 
-        function wrapPorts(elm, portSubscribes) {
+        function wrapPorts(elm, portSubscribes, portSends) {
             var portNames = Object.keys(elm.ports || {});
             //hook ports
             if (portNames.length) {
+                // hook outgoing ports
                 portNames
                     .filter(function(name) {
                         return 'subscribe' in elm.ports[name];
@@ -267,6 +311,21 @@ if (module.hot) {
                                     console.warn('[elm-hot] ports.' + portName + '.unsubscribe: handler not subscribed');
                                 }
                                 return unsubscribe.call(port, handler);
+                            }
+                        });
+                    });
+
+                // hook incoming ports
+                portNames
+                    .filter(function(name) {
+                        return 'send' in elm.ports[name];
+                    })
+                    .forEach(function(portName) {
+                        var port = elm.ports[portName];
+                        portSends[portName] = port.send;
+                        elm.ports[portName] = Object.assign(port, {
+                            send: function(val) {
+                                return portSends[portName].call(port, val);
                             }
                         });
                     });

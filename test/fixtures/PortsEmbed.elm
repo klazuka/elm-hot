@@ -1,4 +1,4 @@
-port module MainWithPorts exposing (main)
+port module PortsEmbed exposing (main)
 
 import Browser
 import Html exposing (Html, button, div, h1, p, span, text)
@@ -37,12 +37,15 @@ type Msg
 
 update : Msg -> Model -> ( Model, Cmd msg )
 update msg model =
-    case msg of
+    case Debug.log "msg" msg of
         Increment ->
-            ( model, toJavaScript model.count )
+            let
+                n = Debug.log "sending to JS" model.count
+            in
+            ( model, toJavaScript n )
 
         GotNewValue n ->
-            ( { model | count = model.count + 1 }, Cmd.none )
+            ( Debug.log "model after doing increment" { model | count = model.count + 1 }, Cmd.none )
 
 
 subscriptions : Model -> Sub Msg
@@ -53,7 +56,7 @@ subscriptions model =
 view : Model -> Html Msg
 view model =
     div []
-        [ h1 [] [ text "MainWithPorts" ]
+        [ h1 [] [ text "PortsEmbed" ]
         , span [ id "code-version" ] [ text "code: v1" ]
         , p []
             [ text "Counter value is: "

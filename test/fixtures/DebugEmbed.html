@@ -4,14 +4,14 @@
     <meta charset="UTF-8">
     <title>Main</title>
     <script type="text/javascript" src="runtime.js"></script>
-    <script type="text/javascript" src="build/MainWithTasks.js"></script>
+    <script type="text/javascript" src="build/DebugEmbed.js"></script>
 </head>
 
 <body>
     <div id="embed">to be filled out later</div>
     <script>
-        connect("MainWithTasks");
-        Elm.MainWithTasks.init({
+        connect("DebugEmbed");
+        Elm.DebugEmbed.init({
             node: document.getElementById('embed')
         });
     </script>

@@ -88,6 +88,14 @@ test('multiple Elm Main modules', async t => {
     await stepTheCounter(t, page, 6, inc);
 });
 
+test('counter HMR preserves count (embed app in DOM with debugger)', async t => {
+    await doCounterTest(t, "DebugEmbed");
+});
+
+test('counter HMR preserves count (fullscreen app in DOM with debugger)', async t => {
+    await doCounterTest(t, "DebugFullscreen");
+});
+
 test('pending async tasks are cancelled when HMR is performed', async t => {
     const testName = "MainWithTasks";
     const page = t.context.page;
@@ -113,8 +121,12 @@ test('pending async tasks are cancelled when HMR is performed', async t => {
     await modifyElmCode(t, testName, page, "v2", "v3");
 });
 
-test('ports are reconnected after HMR', async t => {
-    await doCounterTest(t, "MainWithPorts");
+test('ports are reconnected after HMR (embed case)', async t => {
+    await doCounterTest(t, "PortsEmbed");
+});
+
+test('ports are reconnected after HMR (fullscreen case)', async t => {
+    await doCounterTest(t, "PortsFullscreen");
 });
 
 async function doCounterTest(t, testName) {
