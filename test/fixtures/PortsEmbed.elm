@@ -37,15 +37,12 @@ type Msg
 
 update : Msg -> Model -> ( Model, Cmd msg )
 update msg model =
-    case Debug.log "msg" msg of
+    case msg of
         Increment ->
-            let
-                n = Debug.log "sending to JS" model.count
-            in
-            ( model, toJavaScript n )
+            ( model, toJavaScript model.count )
 
         GotNewValue n ->
-            ( Debug.log "model after doing increment" { model | count = model.count + 1 }, Cmd.none )
+            ( { model | count = model.count + 1 }, Cmd.none )
 
 
 subscriptions : Model -> Sub Msg
