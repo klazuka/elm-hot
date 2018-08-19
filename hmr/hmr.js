@@ -165,9 +165,8 @@ if (module.hot) {
                 flags: flags,
                 portSubscribes: portSubscribes,
                 portSends: portSends,
-                lastState: null, // last Elm app state (root model)
-                callbacks: []
-            }
+                lastState: null // last Elm app state (root model)
+            };
 
             console.log("Registering instance: " + JSON.stringify(instance) + " for id " + id)
             return instances[id] = instance
@@ -351,12 +350,27 @@ if (module.hot) {
                 console.log("hooked Elm init called")
                 var initialStateTuple = init(args)
                 if (swappingInstance) {
+                    var oldModel = swappingInstance.lastState;
+                    var newModel = initialStateTuple.a;
+
+                    // attempt to find the Browser.Navigation.Key in the newly-constructed model
+                    // and bring it along with the rest of the old data.
+                    // TODO [kl] recursively search the model
+                    Object.keys(newModel).forEach(function (propName) {
+                        var prop = newModel[propName];
+                        if (prop.hasOwnProperty("elm-hot-nav-key")) {
+                            console.log("Found nav key in the model as " + propName);
+                            oldModel[propName] = prop;
+                        }
+                    });
+
                     // the heart of the app state hot-swap
-                    initialStateTuple.a = swappingInstance.lastState
+                    initialStateTuple.a = oldModel;
                 } else {
                     // capture the initial state for later
                     initializingInstance.lastState = initialStateTuple.a;
                 }
+
                 return initialStateTuple
             };
 
@@ -370,7 +384,8 @@ if (module.hot) {
                         // TODO [kl] verify that this try-catch is actually still useful in Elm 0.19
                         result = stepperBuilder(sendToApp, model)
                     } catch (e) {
-                        throw new Error('[elm-hot] Hot-swapping ' + instance.path + ' is not possible, please reload page. Error: ' + e.message)
+                        throw new Error('[elm-hot] Hot-swapping ' + instance.path +
+                            ' is not possible, please reload page. Error: ' + e.message)
                     }
                 } else {
                     result = stepperBuilder(sendToApp, model)

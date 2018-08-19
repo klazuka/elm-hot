@@ -26,8 +26,8 @@ app.get('/:filename.html', (req, res) => {
 app.get('/build/:filename.js', function (req, res) {
     const filename = req.params.filename + ".js";
     const pathToElmCodeJS = path.join(pathToBuildDir, filename);
-    const originalElmCodeJS = fs.readFileSync(pathToElmCodeJS);
-    const hmrCode = fs.readFileSync(path.join(__dirname, "../hmr/hmr.js"));
+    const originalElmCodeJS = fs.readFileSync(pathToElmCodeJS, {encoding: "utf8"});
+    const hmrCode = fs.readFileSync(path.join(__dirname, "../hmr/hmr.js"), {encoding: "utf8"});
     const fullyInjectedCode = util.inject(hmrCode, originalElmCodeJS);
     res.send(fullyInjectedCode);
 });
