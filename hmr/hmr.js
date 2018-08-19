@@ -353,6 +353,9 @@ if (module.hot) {
                 if (swappingInstance) {
                     // the heart of the app state hot-swap
                     initialStateTuple.a = swappingInstance.lastState
+                } else {
+                    // capture the initial state for later
+                    initializingInstance.lastState = initialStateTuple.a;
                 }
                 return initialStateTuple
             };
@@ -367,7 +370,7 @@ if (module.hot) {
                         // TODO [kl] verify that this try-catch is actually still useful in Elm 0.19
                         result = stepperBuilder(sendToApp, model)
                     } catch (e) {
-                        throw new Error('[elm-hot] Hot-swapping is not possible, please reload page. Error: ' + e.message)
+                        throw new Error('[elm-hot] Hot-swapping ' + instance.path + ' is not possible, please reload page. Error: ' + e.message)
                     }
                 } else {
                     result = stepperBuilder(sendToApp, model)
@@ -377,7 +380,7 @@ if (module.hot) {
                     console.log("hooked stepper invoked with nextModel=" + JSON.stringify(nextModel));
                     if (instance) {
                         // capture the state after every step so that later we can restore from it during a hot-swap
-                        console.log("Setting lastState on the current initializing instance");
+                        console.log("Setting lastState on the current instance");
                         instance.lastState = nextModel
                     }
                     return result(nextModel, isSync)
