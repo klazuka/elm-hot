@@ -165,7 +165,7 @@ if (module.hot) {
                 flags: flags,
                 portSubscribes: portSubscribes,
                 portSends: portSends,
-                messages: [], // intercepted, top-level Elm messages
+                lastState: null, // last Elm app state (root model)
                 callbacks: []
             }
 
@@ -345,35 +345,46 @@ if (module.hot) {
                     + " swappingInstance=" + swappingInstance);
 
             var instance = initializingInstance || swappingInstance;
+            var tryFirstRender = !!swappingInstance;
 
             var hookedInit = function (args) {
                 console.log("hooked Elm init called")
-                var result = init(args)
+                var initialStateTuple = init(args)
                 if (swappingInstance) {
-                    var messages = swappingInstance.messages
-                    console.log("replaying messages: " + JSON.stringify(messages))
-                    for (var i = 0; i < messages.length; i++) {
-                        var msg = messages[i];
-                        var model = result.a;
-                        // console.log("oldModel = " + JSON.stringify(result.a))
-                        result = A2(update, msg, model);
-                        // console.log("newModel = " + JSON.stringify(result.a))
-                    }
-                    // ensure that we don't replay any Cmds
-                    result.b = elm$core$Platform$Cmd$none;
+                    // the heart of the app state hot-swap
+                    initialStateTuple.a = swappingInstance.lastState
                 }
-                console.log("final model = " + JSON.stringify(result.a));
-                return result
-            }
+                return initialStateTuple
+            };
 
-            var hookedUpdate = F2(
-                function (msg, model) {
-                    // console.log("hooked Elm update called; msg=" + JSON.stringify(msg));
-                    instance.messages.push(msg);
-                    return A2(update, msg, model);
-                });
+            var hookedStepperBuilder = function (sendToApp, model) {
+                console.log("hookedStepperBuilder() invoked with initial model=" + JSON.stringify(model))
+                var result;
+                // first render may fail if shape of model changed too much
+                if (tryFirstRender) {
+                    tryFirstRender = false
+                    try {
+                        // TODO [kl] verify that this try-catch is actually still useful in Elm 0.19
+                        result = stepperBuilder(sendToApp, model)
+                    } catch (e) {
+                        throw new Error('[elm-hot] Hot-swapping is not possible, please reload page. Error: ' + e.message)
+                    }
+                } else {
+                    result = stepperBuilder(sendToApp, model)
+                }
 
-            return initialize(flagDecoder, args, hookedInit, hookedUpdate, subscriptions, stepperBuilder)
+                return function(nextModel, isSync) {
+                    console.log("hooked stepper invoked with nextModel=" + JSON.stringify(nextModel));
+                    if (instance) {
+                        // capture the state after every step so that later we can restore from it during a hot-swap
+                        console.log("Setting lastState on the current initializing instance");
+                        instance.lastState = nextModel
+                    }
+                    return result(nextModel, isSync)
+                }
+            };
+
+            return initialize(flagDecoder, args, hookedInit, update, subscriptions, hookedStepperBuilder)
         }
 
         // hook process creation

@@ -26,7 +26,7 @@ test.before(async () => {
 test.beforeEach(async t => {
     // TODO [kl] if we ever do multiple webpack tests, we will need to randomize the server listen port
     t.context.httpServer = startServer();
-    t.context.serverUrl = 'http://127.0.0.1:3000';
+    t.context.serverUrl = 'http://127.0.0.1:3333';
 
     const page = await browser.newPage();
 

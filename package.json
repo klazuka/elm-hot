@@ -7,7 +7,7 @@
   "scripts": {
     "test": "ava",
     "build:fixtures": "cd test/fixtures && ./build.sh",
-    "dev": "cd test/example-webpack && webpack-dev-server --mode development --port 3000"
+    "dev": "cd test/example-webpack && webpack-dev-server --mode development --port 3333"
   },
   "ava": {
     "files": [
