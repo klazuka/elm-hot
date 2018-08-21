@@ -353,16 +353,24 @@ if (module.hot) {
                     var oldModel = swappingInstance.lastState;
                     var newModel = initialStateTuple.a;
 
-                    // attempt to find the Browser.Navigation.Key in the newly-constructed model
-                    // and bring it along with the rest of the old data.
-                    // TODO [kl] recursively search the model
-                    Object.keys(newModel).forEach(function (propName) {
-                        var prop = newModel[propName];
-                        if (prop.hasOwnProperty("elm-hot-nav-key")) {
-                            console.log("Found nav key in the model as " + propName);
-                            oldModel[propName] = prop;
+                    if (typeof elm$browser$Browser$application !== 'undefined') {
+                        // attempt to find the Browser.Navigation.Key in the newly-constructed model
+                        // and bring it along with the rest of the old data.
+                        var foundNavKey = false;
+                        Object.keys(newModel).forEach(function (propName) {
+                            var prop = newModel[propName];
+                            if (prop.hasOwnProperty("elm-hot-nav-key")) {
+                                foundNavKey = true;
+                                oldModel[propName] = prop;
+                            }
+                        });
+                        if (!foundNavKey) {
+                            console.error("[elm-hot] Hot-swapping " + instance.path + " not possible. "
+                                + "You can fix this error by storing the Browser.Navigation.Key at the root "
+                                + "of your app's model.");
+                            oldModel = newModel;
                         }
-                    });
+                    }
 
                     // the heart of the app state hot-swap
                     initialStateTuple.a = oldModel;
