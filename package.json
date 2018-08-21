@@ -15,6 +15,7 @@
       "test/example-webpack/test-webpack.js"
     ]
   },
+  "loader": "webpack-loader/loader.js",
   "devDependencies": {
     "ava": "1.0.0-beta.6",
     "elm-format": "^0.8.0-alpha-elm019rc1-rc2",
