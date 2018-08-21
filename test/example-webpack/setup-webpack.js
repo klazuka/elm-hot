@@ -58,7 +58,6 @@ test.afterEach.always(async t => {
 });
 
 
-
 test.after.always(async () => {
     if (typeof browser !== "undefined") {
         // normally browser will be defined, but it might not be if a `before` hook failed

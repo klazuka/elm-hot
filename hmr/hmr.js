@@ -33,7 +33,7 @@ if (module.hot) {
 
         //polyfill for IE: https://github.com/fluxxu/elm-hot-loader/issues/16
         if (typeof Object.assign != 'function') {
-            Object.assign = function(target) {
+            Object.assign = function (target) {
                 'use strict';
                 if (target == null) {
                     throw new TypeError('Cannot convert undefined or null to object');
@@ -105,20 +105,23 @@ if (module.hot) {
                 if (_Platform_initialize) {
                     return '0.19'
                 }
-            } catch (_) {}
+            } catch (_) {
+            }
 
             try {
                 if (_elm_lang$core$Native_Platform.initialize) {
                     return '0.18'
                 }
-            } catch (_) {}
+            } catch (_) {
+            }
 
             try {
                 // 0.17 function programWithFlags(details)
                 if (_elm_lang$virtual_dom$VirtualDom$programWithFlags.length === 1) {
                     return '0.17'
                 }
-            } catch (_) {}
+            } catch (_) {
+            }
 
             return 'unknown'
         }
@@ -199,7 +202,7 @@ if (module.hot) {
         function wrapPublicModule(path, module) {
             var originalInit = module.init;
             if (originalInit) {
-                module.init = function(args) {
+                module.init = function (args) {
                     console.log("JS init of Elm module '" + path + "' invoked")
                     var elm;
                     var portSubscribes = {};
@@ -231,7 +234,7 @@ if (module.hot) {
             var elm;
             if (m) {
                 // prepare to initialize the new Elm module
-                var args = { flags: instance.flags };
+                var args = {flags: instance.flags};
                 if (containerNode === document.body) {
                     // fullscreen case: no additional args needed
                 } else {
@@ -244,7 +247,7 @@ if (module.hot) {
                 elm = m.init(args);
                 console.log("Swap finished JS init of Elm model");
 
-                Object.keys(instance.portSubscribes).forEach(function(portName) {
+                Object.keys(instance.portSubscribes).forEach(function (portName) {
                     if (portName in elm.ports && 'subscribe' in elm.ports[portName]) {
                         var handlers = instance.portSubscribes[portName];
                         if (!handlers.length) {
@@ -252,7 +255,7 @@ if (module.hot) {
                         }
                         console.log('[elm-hot] Reconnect ' + handlers.length + ' handler(s) to port \''
                             + portName + '\' (' + instance.path + ').');
-                        handlers.forEach(function(handler) {
+                        handlers.forEach(function (handler) {
                             elm.ports[portName].subscribe(handler);
                         });
                     } else {
@@ -261,7 +264,7 @@ if (module.hot) {
                     }
                 });
 
-                Object.keys(instance.portSends).forEach(function(portName) {
+                Object.keys(instance.portSends).forEach(function (portName) {
                     if (portName in elm.ports && 'send' in elm.ports[portName]) {
                         console.log('[elm-hot] Replace old port send with the new send');
                         instance.portSends[portName] = elm.ports[portName].send;
@@ -283,25 +286,25 @@ if (module.hot) {
             if (portNames.length) {
                 // hook outgoing ports
                 portNames
-                    .filter(function(name) {
+                    .filter(function (name) {
                         return 'subscribe' in elm.ports[name];
                     })
-                    .forEach(function(portName) {
+                    .forEach(function (portName) {
                         var port = elm.ports[portName];
                         var subscribe = port.subscribe;
                         var unsubscribe = port.unsubscribe;
                         elm.ports[portName] = Object.assign(port, {
-                            subscribe: function(handler) {
+                            subscribe: function (handler) {
                                 console.log('[elm-hot] ports.' + portName + '.subscribe called.');
                                 if (!portSubscribes[portName]) {
-                                    portSubscribes[portName] = [ handler ];
+                                    portSubscribes[portName] = [handler];
                                 } else {
                                     //TODO handle subscribing to single handler more than once?
                                     portSubscribes[portName].push(handler);
                                 }
                                 return subscribe.call(port, handler);
                             },
-                            unsubscribe: function(handler) {
+                            unsubscribe: function (handler) {
                                 console.log('[elm-hot] ports.' + portName + '.unsubscribe called.');
                                 var list = portSubscribes[portName];
                                 if (list && list.indexOf(handler) !== -1) {
@@ -316,14 +319,14 @@ if (module.hot) {
 
                 // hook incoming ports
                 portNames
-                    .filter(function(name) {
+                    .filter(function (name) {
                         return 'send' in elm.ports[name];
                     })
-                    .forEach(function(portName) {
+                    .forEach(function (portName) {
                         var port = elm.ports[portName];
                         portSends[portName] = port.send;
                         elm.ports[portName] = Object.assign(port, {
-                            send: function(val) {
+                            send: function (val) {
                                 return portSends[portName].call(port, val);
                             }
                         });
@@ -399,7 +402,7 @@ if (module.hot) {
                     result = stepperBuilder(sendToApp, model)
                 }
 
-                return function(nextModel, isSync) {
+                return function (nextModel, isSync) {
                     console.log("hooked stepper invoked with nextModel=" + JSON.stringify(nextModel));
                     if (instance) {
                         // capture the state after every step so that later we can restore from it during a hot-swap
