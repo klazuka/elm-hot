@@ -12,7 +12,7 @@
         - `module` (from Node.js module system and webpack)
 
     assumed in scope after injection into the Elm IIFE:
-        - `scope` (has an 'Elm' property which contains the public API)
+        - `scope` (has an 'Elm' property which contains the public Elm API)
         - various functions defined by Elm which we have to hook such as `_Platform_initialize` and `_Scheduler_binding`
  */
 
@@ -71,7 +71,6 @@ if (module.hot) {
 
         module.hot.accept();
         module.hot.dispose(function (data) {
-            console.log("running the callback given to dispose");
             data.instances = instances;
             data.uid = uid;
 
@@ -79,7 +78,6 @@ if (module.hot) {
 
             // First, make sure that no new tasks can be started until we finish replacing the code
             _Scheduler_binding = function () {
-                console.log("hooked _Scheduler_binding called: failing immediately");
                 return _Scheduler_fail(new Error('[elm-hot] Inactive Elm instance.'))
             };
 
@@ -171,7 +169,6 @@ if (module.hot) {
                 lastState: null // last Elm app state (root model)
             };
 
-            console.log("Registering instance: " + JSON.stringify(instance) + " for id " + id);
             return instances[id] = instance
         }
 
@@ -203,7 +200,6 @@ if (module.hot) {
             var originalInit = module.init;
             if (originalInit) {
                 module.init = function (args) {
-                    console.log("JS init of Elm module '" + path + "' invoked");
                     var elm;
                     var portSubscribes = {};
                     var portSends = {};
@@ -245,7 +241,6 @@ if (module.hot) {
                 }
 
                 elm = m.init(args);
-                console.log("Swap finished JS init of Elm model");
 
                 Object.keys(instance.portSubscribes).forEach(function (portName) {
                     if (portName in elm.ports && 'subscribe' in elm.ports[portName]) {
@@ -338,19 +333,10 @@ if (module.hot) {
         // hook program creation
         var initialize = _Platform_initialize;
         _Platform_initialize = function (flagDecoder, args, init, update, subscriptions, stepperBuilder) {
-            if (initializingInstance !== null && swappingInstance === null)
-                console.log("Initializing Elm module; initializingInstance=" + JSON.stringify(initializingInstance));
-            else if (initializingInstance === null && swappingInstance !== null)
-                console.log("Re-initializing Elm module during swap; swappingInstance=" + JSON.stringify(swappingInstance));
-            else
-                throw Error("Unexpected state: initializingInstance=" + initializingInstance
-                    + " swappingInstance=" + swappingInstance);
-
             var instance = initializingInstance || swappingInstance;
             var tryFirstRender = !!swappingInstance;
 
             var hookedInit = function (args) {
-                console.log("hooked Elm init called");
                 var initialStateTuple = init(args);
                 if (swappingInstance) {
                     var oldModel = swappingInstance.lastState;
@@ -386,7 +372,6 @@ if (module.hot) {
             };
 
             var hookedStepperBuilder = function (sendToApp, model) {
-                console.log("hookedStepperBuilder() invoked with initial model=" + JSON.stringify(model));
                 var result;
                 // first render may fail if shape of model changed too much
                 if (tryFirstRender) {
@@ -403,10 +388,8 @@ if (module.hot) {
                 }
 
                 return function (nextModel, isSync) {
-                    console.log("hooked stepper invoked with nextModel=" + JSON.stringify(nextModel));
                     if (instance) {
                         // capture the state after every step so that later we can restore from it during a hot-swap
-                        console.log("Setting lastState on the current instance");
                         instance.lastState = nextModel
                     }
                     return result(nextModel, isSync)
@@ -423,7 +406,6 @@ if (module.hot) {
                 // start the scheduled process, which may return a cancellation function.
                 var cancel = originalCallback.apply(this, arguments);
                 if (cancel) {
-                    // console.log("started a cancelable process: registering the canceler");
                     cancellers.push(cancel);
                     return function () {
                         cancellers.splice(cancellers.indexOf(cancel), 1);
@@ -435,16 +417,13 @@ if (module.hot) {
         };
 
         scope['_elm_hot_loader_init'] = function (Elm) {
-            console.log("_elm_hot_loader_init() with existing instances: " + JSON.stringify(instances));
             // swap instances
             var removedInstances = [];
             for (var id in instances) {
-                console.log("attempting to reconnect instance id: " + id);
                 var instance = instances[id];
                 if (instance.domNode.parentNode) {
                     swap(Elm, instance);
                 } else {
-                    console.log("Removing dead Elm instance");
                     removedInstances.push(id);
                 }
             }
@@ -456,7 +435,6 @@ if (module.hot) {
             // wrap all public modules
             var publicModules = findPublicModules(Elm);
             publicModules.forEach(function (m) {
-                console.log("Wrapping public entry point module: " + m.path);
                 wrapPublicModule(m.path, m.module);
             });
         }

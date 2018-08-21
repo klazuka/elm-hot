@@ -16,9 +16,7 @@ function connect(programName) {
     // Listen for the server to tell us that an HMR update is available
     eventSource = new EventSource("stream-" + programName);
     eventSource.onmessage = function (evt) {
-        console.log("got message: " + evt.data);
         var reloadUrl = evt.data;
-        console.log("pulling new code");
         var myRequest = new Request(reloadUrl);
         myRequest.cache = "no-cache";
         fetch(myRequest).then(function (response) {
@@ -43,21 +41,17 @@ var myDisposeCallback = null;
 var module = {
     hot: {
         accept: function () {
-            // console.log("hot.accept() called")
         },
 
         dispose: function (callback) {
-            // console.log("hot.dispose() called; storing callback");
             myDisposeCallback = callback
         },
 
         data: null,
 
         apply: function () {
-            // console.log("apply()");
             var newData = {};
             myDisposeCallback(newData);
-            // console.log("storing disposed hot data " + JSON.stringify(newData));
             module.hot.data = newData
         }
 
