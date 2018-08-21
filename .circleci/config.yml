@@ -27,7 +27,6 @@ jobs:
           - v1-dependencies-
 
       - run: npm install
-      - run: ./install_elm_for_linux.sh
 
       - save_cache:
           paths:
