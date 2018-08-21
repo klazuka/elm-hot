@@ -20,8 +20,8 @@ if (module.hot) {
     (function () {
         "use strict";
 
-        var version = detectElmVersion()
-        console.log('[elm-hot] Elm version:', version)
+        var version = detectElmVersion();
+        console.log('[elm-hot] Elm version:', version);
 
         if (version === '0.17') {
             throw new Error('[elm-hot] Please use fluxxu/elm-hot-loader@0.4.x')
@@ -71,7 +71,7 @@ if (module.hot) {
 
         module.hot.accept();
         module.hot.dispose(function (data) {
-            console.log("running the callback given to dispose")
+            console.log("running the callback given to dispose");
             data.instances = instances;
             data.uid = uid;
 
@@ -171,7 +171,7 @@ if (module.hot) {
                 lastState: null // last Elm app state (root model)
             };
 
-            console.log("Registering instance: " + JSON.stringify(instance) + " for id " + id)
+            console.log("Registering instance: " + JSON.stringify(instance) + " for id " + id);
             return instances[id] = instance
         }
 
@@ -203,12 +203,12 @@ if (module.hot) {
             var originalInit = module.init;
             if (originalInit) {
                 module.init = function (args) {
-                    console.log("JS init of Elm module '" + path + "' invoked")
+                    console.log("JS init of Elm module '" + path + "' invoked");
                     var elm;
                     var portSubscribes = {};
                     var portSends = {};
                     var domNode = args['node'] ? wrapDomNode(args['node']) : document.body;
-                    initializingInstance = registerInstance(domNode, args['flags'], path, portSubscribes, portSends)
+                    initializingInstance = registerInstance(domNode, args['flags'], path, portSubscribes, portSends);
                     elm = originalInit(args);
                     wrapPorts(elm, portSubscribes, portSends);
                     initializingInstance = null;
@@ -220,7 +220,7 @@ if (module.hot) {
         }
 
         function swap(Elm, instance) {
-            console.log('[elm-hot] Hot-swapping module: ' + instance.path)
+            console.log('[elm-hot] Hot-swapping module: ' + instance.path);
 
             swappingInstance = instance;
 
@@ -230,7 +230,7 @@ if (module.hot) {
                 containerNode.removeChild(containerNode.lastChild);
             }
 
-            var m = getPublicModule(Elm, instance.path)
+            var m = getPublicModule(Elm, instance.path);
             var elm;
             if (m) {
                 // prepare to initialize the new Elm module
@@ -336,7 +336,7 @@ if (module.hot) {
         }
 
         // hook program creation
-        var initialize = _Platform_initialize
+        var initialize = _Platform_initialize;
         _Platform_initialize = function (flagDecoder, args, init, update, subscriptions, stepperBuilder) {
             if (initializingInstance !== null && swappingInstance === null)
                 console.log("Initializing Elm module; initializingInstance=" + JSON.stringify(initializingInstance));
@@ -350,8 +350,8 @@ if (module.hot) {
             var tryFirstRender = !!swappingInstance;
 
             var hookedInit = function (args) {
-                console.log("hooked Elm init called")
-                var initialStateTuple = init(args)
+                console.log("hooked Elm init called");
+                var initialStateTuple = init(args);
                 if (swappingInstance) {
                     var oldModel = swappingInstance.lastState;
                     var newModel = initialStateTuple.a;
@@ -386,11 +386,11 @@ if (module.hot) {
             };
 
             var hookedStepperBuilder = function (sendToApp, model) {
-                console.log("hookedStepperBuilder() invoked with initial model=" + JSON.stringify(model))
+                console.log("hookedStepperBuilder() invoked with initial model=" + JSON.stringify(model));
                 var result;
                 // first render may fail if shape of model changed too much
                 if (tryFirstRender) {
-                    tryFirstRender = false
+                    tryFirstRender = false;
                     try {
                         // TODO [kl] verify that this try-catch is actually still useful in Elm 0.19
                         result = stepperBuilder(sendToApp, model)
@@ -414,7 +414,7 @@ if (module.hot) {
             };
 
             return initialize(flagDecoder, args, hookedInit, update, subscriptions, hookedStepperBuilder)
-        }
+        };
 
         // hook process creation
         var originalBinding = _Scheduler_binding;
@@ -435,16 +435,16 @@ if (module.hot) {
         };
 
         scope['_elm_hot_loader_init'] = function (Elm) {
-            console.log("_elm_hot_loader_init() with existing instances: " + JSON.stringify(instances))
+            console.log("_elm_hot_loader_init() with existing instances: " + JSON.stringify(instances));
             // swap instances
             var removedInstances = [];
             for (var id in instances) {
-                console.log("attempting to reconnect instance id: " + id)
-                var instance = instances[id]
+                console.log("attempting to reconnect instance id: " + id);
+                var instance = instances[id];
                 if (instance.domNode.parentNode) {
                     swap(Elm, instance);
                 } else {
-                    console.log("Removing dead Elm instance")
+                    console.log("Removing dead Elm instance");
                     removedInstances.push(id);
                 }
             }
@@ -456,11 +456,11 @@ if (module.hot) {
             // wrap all public modules
             var publicModules = findPublicModules(Elm);
             publicModules.forEach(function (m) {
-                console.log("Wrapping public entry point module: " + m.path)
+                console.log("Wrapping public entry point module: " + m.path);
                 wrapPublicModule(m.path, m.module);
             });
         }
     })();
 }
 //////////////////// HMR END ////////////////////
-scope['_elm_hot_loader_init'](scope['Elm'])
+scope['_elm_hot_loader_init'](scope['Elm']);
