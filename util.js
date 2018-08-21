@@ -1,6 +1,11 @@
 // inject the HMR code into the Elm compiler's JS output
 function inject(hmrCode, originalElmCodeJS) {
 
+    // first, verify that we have not been given Elm 0.18 code
+    if (originalElmCodeJS.indexOf("_elm_lang$core$Native_Platform.initialize") >= 0) {
+        throw new Error("[elm-hot] Elm 0.18 is not supported. Please use fluxxu/elm-hot-loader@0.5.x instead.");
+    }
+
     var modifiedCode = originalElmCodeJS;
 
     if (originalElmCodeJS.indexOf("elm$browser$Browser$application") !== -1) {
@@ -22,7 +27,7 @@ function inject(hmrCode, originalElmCodeJS) {
     const match = regex.exec(modifiedCode);
 
     if (match === null) {
-        throw new Error("Compiled JS from the Elm compiler is not valid. Version mismatch?");
+        throw new Error("Compiled JS from the Elm compiler is not valid. You must use the Elm 0.19 compiler.");
     }
 
     return modifiedCode.slice(0, match.index)

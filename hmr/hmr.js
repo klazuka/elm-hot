@@ -20,17 +20,6 @@ if (module.hot) {
     (function () {
         "use strict";
 
-        var version = detectElmVersion();
-        console.log('[elm-hot] Elm version:', version);
-
-        if (version === '0.17') {
-            throw new Error('[elm-hot] Please use fluxxu/elm-hot-loader@0.4.x')
-        } else if (version === '0.18') {
-            throw new Error('[elm-hot] Please use fluxxu/elm-hot-loader@0.5.x')
-        } else if (version !== '0.19') {
-            throw new Error('[elm-hot] Elm version not supported.')
-        }
-
         //polyfill for IE: https://github.com/fluxxu/elm-hot-loader/issues/16
         if (typeof Object.assign != 'function') {
             Object.assign = function (target) {
@@ -54,13 +43,16 @@ if (module.hot) {
             };
         }
 
-
         var instances = module.hot.data
             ? module.hot.data.instances || {}
             : {};
         var uid = module.hot.data
             ? module.hot.data.uid || 0
             : 0;
+
+        if (Object.keys(instances).length === 0) {
+            console.log("[elm-hot] Enabled");
+        }
 
         var cancellers = [];
 
@@ -96,32 +88,6 @@ if (module.hot) {
 
         function getId() {
             return ++uid;
-        }
-
-        function detectElmVersion() {
-            try {
-                if (_Platform_initialize) {
-                    return '0.19'
-                }
-            } catch (_) {
-            }
-
-            try {
-                if (_elm_lang$core$Native_Platform.initialize) {
-                    return '0.18'
-                }
-            } catch (_) {
-            }
-
-            try {
-                // 0.17 function programWithFlags(details)
-                if (_elm_lang$virtual_dom$VirtualDom$programWithFlags.length === 1) {
-                    return '0.17'
-                }
-            } catch (_) {
-            }
-
-            return 'unknown'
         }
 
         function findPublicModules(parent, path) {
