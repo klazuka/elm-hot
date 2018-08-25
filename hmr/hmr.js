@@ -296,6 +296,21 @@ if (module.hot) {
             return portSubscribes;
         }
 
+        function isDebuggerModel(model) {
+            return model && model.hasOwnProperty("expando") && model.hasOwnProperty("state");
+        }
+
+        function findNavKey(model) {
+            for (var propName in model) {
+                if (!model.hasOwnProperty(propName)) continue;
+                var prop = model[propName];
+                if (prop.hasOwnProperty("elm-hot-nav-key")) {
+                    return {name: propName, value: prop};
+                }
+            }
+            return null;
+        }
+
         // hook program creation
         var initialize = _Platform_initialize;
         _Platform_initialize = function (flagDecoder, args, init, update, subscriptions, stepperBuilder) {
@@ -311,15 +326,19 @@ if (module.hot) {
                     if (typeof elm$browser$Browser$application !== 'undefined') {
                         // attempt to find the Browser.Navigation.Key in the newly-constructed model
                         // and bring it along with the rest of the old data.
-                        var foundNavKey = false;
-                        Object.keys(newModel).forEach(function (propName) {
-                            var prop = newModel[propName];
-                            if (prop.hasOwnProperty("elm-hot-nav-key")) {
-                                foundNavKey = true;
-                                oldModel[propName] = prop;
+                        var newKey = null;
+                        if (isDebuggerModel(newModel)) {
+                            newKey = findNavKey(newModel['state']['a']);
+                            if (newKey) {
+                                oldModel['state']['a'][newKey.name] = newKey.value;
                             }
-                        });
-                        if (!foundNavKey) {
+                        } else {
+                            newKey = findNavKey(newModel);
+                            if (newKey) {
+                                oldModel[newKey.name] = newKey.value;
+                            }
+                        }
+                        if (!newKey) {
                             console.error("[elm-hot] Hot-swapping " + instance.path + " not possible. "
                                 + "You can fix this error by storing the Browser.Navigation.Key at the root "
                                 + "of your app's model.");
@@ -343,7 +362,6 @@ if (module.hot) {
                 if (tryFirstRender) {
                     tryFirstRender = false;
                     try {
-                        // TODO [kl] verify that this try-catch is actually still useful in Elm 0.19
                         result = stepperBuilder(sendToApp, model)
                     } catch (e) {
                         throw new Error('[elm-hot] Hot-swapping ' + instance.path +

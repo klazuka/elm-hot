@@ -1,0 +1,20 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Main</title>
+    <script type="text/javascript" src="runtime.js"></script>
+    <script type="text/javascript" src="build/DebugBrowserApplication.js"></script>
+</head>
+
+<body>
+<script>
+    connect("DebugBrowserApplication");
+    Elm.DebugBrowserApplication.init({
+        flags: {
+            n: 0
+        }
+    });
+</script>
+</body>
+</html>

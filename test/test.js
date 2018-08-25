@@ -29,34 +29,7 @@ test('counter HMR preserves count (Browser.sandbox)', async t => {
 });
 
 test('counter HMR preserves count (Browser.application)', async t => {
-    const testName = "BrowserApplicationCounter";
-    const page = t.context.page;
-    await page.goto(`${t.context.serverUrl}/${testName}.html`);
-
-    const inc = "#incrementer ";
-    const dec = "#decrementer ";
-
-    await checkCodeVersion(t, page, "v1");
-    await stepTheCounter(t, page, 1, inc);
-    await stepTheCounter(t, page, 2, inc);
-    await stepTheCounter(t, page, 3, inc);
-    await clickLink(page, "#nav-decrement");
-    await stepTheCounter(t, page, 2, dec);
-    await modifyElmCode(t, testName, page, "v1", "v2");
-    await stepTheCounter(t, page, 1, dec);
-    await clickLink(page, "#nav-increment");
-    await stepTheCounter(t, page, 2, inc);
-    await modifyElmCode(t, testName, page, "v2", "v3");
-    await stepTheCounter(t, page, 3, inc);
-    await stepTheCounter(t, page, 4, inc);
-    await modifyElmCode(t, testName, page, "v3", "v4");
-    await stepTheCounter(t, page, 5, inc);
-    await modifyElmCode(t, testName, page, "v4", "v5");
-    await clickLink(page, "#nav-decrement");
-    await stepTheCounter(t, page, 4, dec);
-    await stepTheCounter(t, page, 3, dec);
-    await clickLink(page, "#nav-increment");
-    await stepTheCounter(t, page, 4, inc);
+    await doBrowserApplicationTest(t, "BrowserApplicationCounter");
 });
 
 test('multiple Elm Main modules', async t => {
@@ -94,6 +67,10 @@ test('counter HMR preserves count (embed app in DOM with debugger)', async t => 
 
 test('counter HMR preserves count (fullscreen app in DOM with debugger)', async t => {
     await doCounterTest(t, "DebugFullscreen");
+});
+
+test('counter HMR preserves count (Browser.application with debugger)', async t => {
+    await doBrowserApplicationTest(t, "DebugBrowserApplication");
 });
 
 test('pending async tasks are cancelled when HMR is performed', async t => {
@@ -146,6 +123,36 @@ async function doCounterTest(t, testName) {
     await stepTheCounter(t, page, 7);
     await modifyElmCode(t, testName, page, "v4", "v5");
     await stepTheCounter(t, page, 8);
+}
+
+async function doBrowserApplicationTest(t, testName) {
+    const page = t.context.page;
+    await page.goto(`${t.context.serverUrl}/${testName}.html`);
+
+    const inc = "#incrementer ";
+    const dec = "#decrementer ";
+
+    await checkCodeVersion(t, page, "v1");
+    await stepTheCounter(t, page, 1, inc);
+    await stepTheCounter(t, page, 2, inc);
+    await stepTheCounter(t, page, 3, inc);
+    await clickLink(page, "#nav-decrement");
+    await stepTheCounter(t, page, 2, dec);
+    await modifyElmCode(t, testName, page, "v1", "v2");
+    await stepTheCounter(t, page, 1, dec);
+    await clickLink(page, "#nav-increment");
+    await stepTheCounter(t, page, 2, inc);
+    await modifyElmCode(t, testName, page, "v2", "v3");
+    await stepTheCounter(t, page, 3, inc);
+    await stepTheCounter(t, page, 4, inc);
+    await modifyElmCode(t, testName, page, "v3", "v4");
+    await stepTheCounter(t, page, 5, inc);
+    await modifyElmCode(t, testName, page, "v4", "v5");
+    await clickLink(page, "#nav-decrement");
+    await stepTheCounter(t, page, 4, dec);
+    await stepTheCounter(t, page, 3, dec);
+    await clickLink(page, "#nav-increment");
+    await stepTheCounter(t, page, 4, inc);
 }
 
 
