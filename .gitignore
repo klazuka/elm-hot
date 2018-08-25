@@ -1,3 +1,10 @@
 .idea
-node_modules/
+
+node_modules
 test/fixtures/build
+
+webpack-loader/node_modules
+webpack-loader/test/dist
+webpack-loader/test/fixtures/elm-stuff
+webpack-loader/test/fixtures/build
+

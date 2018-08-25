@@ -1,6 +1,8 @@
 /*
     A standalone implementation of Webpack's hot module replacement (HMR) system.
 
+    THIS CODE RUNS IN THE BROWSER!
+
     Provide the minimal implementation of Webpack's HMR API. We don't need any of the
     stuff related to Webpack's ability to bundle disparate types of modules (JS, CSS, etc.).
 

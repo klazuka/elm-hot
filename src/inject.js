@@ -1,12 +1,17 @@
+const fs = require('fs');
+const path = require('path');
+
 // inject the HMR code into the Elm compiler's JS output
-function inject(hmrCode, originalElmCodeJS) {
+function inject(originalElmCodeJS) {
+
+    const hmrCode = fs.readFileSync(path.join(__dirname, "../resources/hmr.js"), {encoding: "utf8"});
 
     // first, verify that we have not been given Elm 0.18 code
     if (originalElmCodeJS.indexOf("_elm_lang$core$Native_Platform.initialize") >= 0) {
         throw new Error("[elm-hot] Elm 0.18 is not supported. Please use fluxxu/elm-hot-loader@0.5.x instead.");
     }
 
-    var modifiedCode = originalElmCodeJS;
+    let modifiedCode = originalElmCodeJS;
 
     if (originalElmCodeJS.indexOf("elm$browser$Browser$application") !== -1) {
         // attach a tag to Browser.Navigation.Key values. It's not really fair to call this a hack

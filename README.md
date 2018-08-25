@@ -2,75 +2,68 @@
 
 # elm-hot
 
-Hot code swapping support for Elm 0.19. This improves the Elm development workflow by automatically reloading
-your code in the browser after a change, while preserving your current app state.
+This package provides the core infrastructure needed for doing hot code swapping in Elm. It supports Elm 0.19 only.
 
-This package provides a Webpack loader that can be used in conjunction with 
-[elm-webpack-loader](https://github.com/elm-community/elm-webpack-loader). I intend
-to provide alternative integration options in the future that do not require Webpack.
+**This low-level package is only intended for authors of Elm application servers.**
+
+If you're looking for something that's easier to use, and you're willing to use Webpack, see [elm-hot-webpack-loader](https://github.com/klazuka/elm-hot-webpack-loader), which is built using this package.
+
+The goal of this package is to provide a reusable core that can be used to provide hot code swapping support in a variety of environments--not just Webpack.
 
 
 ## Changelog
 
+### 0.9.1
+- separated the Webpack loader out into its own package
+- exposed core API
+
 ### 0.9.0
 - first release
-- Elm 0.19 support
 
 
-## Installation
+### Installing `elm-hot` core API
 
+```bash
+$ npm install --save elm-hot
 ```
-$ npm install --save-dev elm-webpack-loader elm-hot
-```
+
+---------------------------------------------
+
+### Core API
 
 
-## Webpack Loader Usage
+**`function inject(str)`**
 
-Assuming that you're already using `elm-webpack-loader`, just add `{ loader: 'elm-hot' }` immediately 
-**before** `elm-webpack-loader` in the `use` array. 
+Injects the hot code swapping functionality into a compiled Elm app.
 
-It should look something like this:
+- takes the Javascript code emitted by the Elm compiler as an input string
+- returns a string containing the injected code ready to be `eval`-ed in the browser.   
+
+
+### Example of how the core API could be used 
 
 ```javascript
-module.exports = {
-    module: {
-        rules: [
-            {
-                test: /\.elm$/,
-                exclude: [/elm-stuff/, /node_modules/],
-
-                use: [
-                    { loader: 'elm-hot' },
-                    {
-                        loader: 'elm-webpack-loader',
-                        options: {
-                            cwd: __dirname
-                        }
-                    }
-                ]
-            }
-        ]
-    }
-}
+const elmHot = require('elm-hot');
+const {compileToStringSync} = require('node-elm-compiler');
+const injectedCode = elmHot.inject(compileToStringSync(["src/Main.elm"], {}));
 ```
 
-It's important that the `elm-hot` loader comes *before* the `elm-webpack-loader` in the `use` array.
+In order to provide something similar to `webpack-dev-server` with hot module reloading, an application server could be developed to do the following:
 
-When running `webpack-dev-server`, you must add the `--hot` flag.
+- serve a modified version of the app developer's `index.html` to receive push events from the server
+- watch `.elm` files on disk for changes
+- whenever a source file changes, push an event to the client notifying it that it should fetch new code from the server
+- when the client receives the event:
+    - fetch the new code (the server will re-compile the Elm code and use `elm-hot` to inject the hot-code-swapping logic)
+    - the client deletes the old `Elm` object and calls `eval()` on the new code from the server
+    
+I have implemented something similar to this for the integration tests. See [test/server.js]() and [test/client.js]() for inspiration.
+
+The above description is probably a bit too vague, so if you would like more details, create an issue.
+
+-------------------------------------------
 
 
-## Example
+### Attribution
 
-Check out the [example app](https://github.com/klazuka/example-elm-hot-webpack).
-
-
-## Caveats
-
-- Elm 0.18 is not supported. Use fluxxu/elm-hot-loader@0.5.x instead.
-- If your app uses `Browser.application`, then the `Browser.Navigation.Key` must be stored at the root
-  of your app Model.
-
-
-## Attribution
-
-This is based on the work of Flux Xu's [elm-hot-loader](https://github.com/fluxxu/elm-hot-loader).
+Elm hot code swapping is based on the work of Flux Xu's [elm-hot-loader](https://github.com/fluxxu/elm-hot-loader).

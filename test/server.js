@@ -4,9 +4,9 @@ const fs = require('fs');
 const chokidar = require('chokidar');
 const app = express();
 
-const util = require('../util.js');
+const {inject} = require('../src/inject.js');
 
-const pathToTestFixtures = path.join(__dirname, "../test/fixtures");
+const pathToTestFixtures = path.join(__dirname, "./fixtures");
 const pathToBuildDir = path.join(pathToTestFixtures, "build");
 
 try {
@@ -16,7 +16,7 @@ try {
 }
 const watcher = chokidar.watch(pathToBuildDir, {persistent: true});
 
-app.get('/runtime.js', (req, res) => res.sendFile(path.join(__dirname, "../hmr/runtime.js")));
+app.get('/client.js', (req, res) => res.sendFile(path.join(__dirname, "./client.js")));
 
 app.get('/:filename.html', (req, res) => {
     const filename = req.params.filename + ".html";
@@ -27,13 +27,10 @@ app.get('/build/:filename.js', function (req, res) {
     const filename = req.params.filename + ".js";
     const pathToElmCodeJS = path.join(pathToBuildDir, filename);
     const originalElmCodeJS = fs.readFileSync(pathToElmCodeJS, {encoding: "utf8"});
-    const hmrCode = fs.readFileSync(path.join(__dirname, "../hmr/hmr.js"), {encoding: "utf8"});
-    const fullyInjectedCode = util.inject(hmrCode, originalElmCodeJS);
+    const fullyInjectedCode = inject(originalElmCodeJS);
     res.send(fullyInjectedCode);
 });
 
-// TODO [kl] figure out a better way to filter the events.
-// Kinda lame expressing it in the EventSource URL.
 app.get('/stream-:programName', function (req, res) {
     const programName = req.params.programName;
     res.writeHead(200, {
@@ -41,7 +38,7 @@ app.get('/stream-:programName', function (req, res) {
         'Content-Type': 'text/event-stream'
     });
 
-    watcher.on('change', function(pathThatChanged, stats) {
+    watcher.on('change', function (pathThatChanged, stats) {
         if (pathThatChanged.endsWith(programName + ".js")) {
             //console.log("Pushing HMR event to client");
             const relativeLoadPath = path.relative(pathToTestFixtures, pathThatChanged);

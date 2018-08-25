@@ -2,9 +2,7 @@ const {test} = require('ava');
 const puppeteer = require('puppeteer');
 const childProcess = require("child_process");
 
-const {startServer} = require('../server/standalone.js');
-
-global.test = test;
+const {startServer} = require('./server.js');
 
 test.before(async () => {
     console.log("Building the Elm code");
