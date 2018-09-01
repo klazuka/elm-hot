@@ -311,6 +311,19 @@ if (module.hot) {
             return null;
         }
 
+        function removeNavKeyListeners(model) {
+            var navKey = null;
+            if (isDebuggerModel(model)) {
+                navKey = findNavKey(model['state']['a']);
+            } else {
+                navKey = findNavKey(model);
+            }
+            if (navKey) {
+                window.removeEventListener('popstate', navKey.value);
+                window.navigator.userAgent.indexOf('Trident') < 0 || window.removeEventListener('hashchange', navKey.value);
+            }
+        }
+
         // hook program creation
         var initialize = _Platform_initialize;
         _Platform_initialize = function (flagDecoder, args, init, update, subscriptions, stepperBuilder) {
@@ -324,6 +337,9 @@ if (module.hot) {
                     var newModel = initialStateTuple.a;
 
                     if (typeof elm$browser$Browser$application !== 'undefined') {
+                        // remove old navigation listeners
+                        removeNavKeyListeners(oldModel);
+
                         // attempt to find the Browser.Navigation.Key in the newly-constructed model
                         // and bring it along with the rest of the old data.
                         var newKey = null;
