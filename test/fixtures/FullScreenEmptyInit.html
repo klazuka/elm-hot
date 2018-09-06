@@ -1,0 +1,17 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Main</title>
+    <script type="text/javascript" src="client.js"></script>
+    <script type="text/javascript" src="build/FullScreenEmptyInit.js"></script>
+</head>
+
+<body>
+<script>
+    connect("FullScreenEmptyInit");
+    Elm.FullScreenEmptyInit.init(); // IMPORTANT: we pass NOTHING to `init()`
+                                    // this is allowed for `Browser.document` and `Browser.application`
+</script>
+</body>
+</html>

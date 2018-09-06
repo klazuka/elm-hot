@@ -33,7 +33,13 @@ test('counter HMR preserves count (Browser.application)', async t => {
 });
 
 test('init side effects do not run after HMR', async t => {
+    // see https://github.com/klazuka/elm-hot-webpack-loader/issues/1
     await doCounterTest(t, "InitSideEffects");
+});
+
+test('fullscreen apps which pass empty args to init works', async t => {
+    // see https://github.com/klazuka/elm-hot/issues/11
+    await doCounterTest(t, "FullScreenEmptyInit");
 });
 
 test('multiple Elm Main modules', async t => {

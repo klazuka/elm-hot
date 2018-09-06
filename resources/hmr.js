@@ -169,8 +169,18 @@ if (module.hot) {
                     var elm;
                     var portSubscribes = {};
                     var portSends = {};
-                    var domNode = args['node'] ? wrapDomNode(args['node']) : document.body;
-                    initializingInstance = registerInstance(domNode, args['flags'], path, portSubscribes, portSends);
+                    var domNode = null;
+                    var flags = null;
+                    if (typeof args !== 'undefined') {
+                        // normal case
+                        domNode = args['node'] ? wrapDomNode(args['node']) : document.body;
+                        flags = args['flags'];
+                    } else {
+                        // rare case: Elm allows init to be called without any arguments at all
+                        domNode = document.body;
+                        flags = undefined
+                    }
+                    initializingInstance = registerInstance(domNode, flags, path, portSubscribes, portSends);
                     elm = originalInit(args);
                     wrapPorts(elm, portSubscribes, portSends);
                     initializingInstance = null;
