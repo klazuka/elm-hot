@@ -1,0 +1,25 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Main</title>
+    <script type="text/javascript" src="client.js"></script>
+    <script type="text/javascript" src="build/InitSideEffects.js"></script>
+</head>
+
+<body>
+<div id="embed">to be filled out later</div>
+<script>
+    connect("InitSideEffects");
+    var app = Elm.InitSideEffects.init({
+        node: document.getElementById('embed'),
+        flags: {}
+    });
+
+    app.ports.toJavaScript.subscribe(function (n) {
+        console.log("received " + n + " from Elm");
+        app.ports.fromJavaScript.send(n);
+    });
+</script>
+</body>
+</html>

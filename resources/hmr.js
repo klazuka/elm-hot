@@ -364,6 +364,9 @@ if (module.hot) {
 
                     // the heart of the app state hot-swap
                     initialStateTuple.a = oldModel;
+
+                    // ignore any Cmds returned by the init during hot-swap
+                    initialStateTuple.b = elm$core$Platform$Cmd$none;
                 } else {
                     // capture the initial state for later
                     initializingInstance.lastState = initialStateTuple.a;

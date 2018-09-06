@@ -32,6 +32,10 @@ test('counter HMR preserves count (Browser.application)', async t => {
     await doBrowserApplicationTest(t, "BrowserApplicationCounter");
 });
 
+test('init side effects do not run after HMR', async t => {
+    await doCounterTest(t, "InitSideEffects");
+});
+
 test('multiple Elm Main modules', async t => {
     const testName = "MultiMain";
     const page = t.context.page;
