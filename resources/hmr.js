@@ -442,6 +442,7 @@ if (module.hot) {
             });
         }
     })();
+    
+    scope['_elm_hot_loader_init'](scope['Elm']);
 }
 //////////////////// HMR END ////////////////////
-scope['_elm_hot_loader_init'](scope['Elm']);
