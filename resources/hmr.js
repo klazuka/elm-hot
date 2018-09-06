@@ -107,21 +107,6 @@ if (module.hot) {
             return modules;
         }
 
-        function getPublicModule(Elm, path) {
-            var parts = path.split('.');
-            var parent = Elm;
-            for (var i = 0; i < parts.length; ++i) {
-                var part = parts[i];
-                if (part in parent) {
-                    parent = parent[part]
-                }
-                if (!parent) {
-                    return null;
-                }
-            }
-            return parent
-        }
-
         function registerInstance(domNode, flags, path, portSubscribes, portSends) {
             var id = getId();
 
@@ -132,6 +117,7 @@ if (module.hot) {
                 flags: flags,
                 portSubscribes: portSubscribes,
                 portSends: portSends,
+                navKeyPath: null, // array of JS property names by which the Browser.Navigation.Key can be found in the model
                 lastState: null // last Elm app state (root model)
             };
 
@@ -202,7 +188,7 @@ if (module.hot) {
                 containerNode.removeChild(containerNode.lastChild);
             }
 
-            var m = getPublicModule(Elm, instance.path);
+            var m = getAt(instance.path.split('.'), Elm);
             var elm;
             if (m) {
                 // prepare to initialize the new Elm module
@@ -306,32 +292,57 @@ if (module.hot) {
             return portSubscribes;
         }
 
+        /*
+        Breadth-first search for a `Browser.Navigation.Key` in the user's app model.
+        Returns the key and keypath or null if not found.
+        */
+        function findNavKey(rootModel) {
+            var queue = [];
+            if (isDebuggerModel(rootModel)) {
+                /*
+                 Extract the user's app model from the Elm Debugger's model. The Elm debugger
+                 can hold multiple references to the user's model (e.g. in its "history"). So
+                 we must be careful to only search within the "state" part of the Debugger.
+                */
+                queue.push({value: rootModel['state'], keypath: ['state']});
+            } else {
+                queue.push({value: rootModel, keypath: []});
+            }
+
+            while (queue.length !== 0) {
+                var item = queue.shift();
+
+                // The nav key is identified by a runtime tag added by the elm-hot injector.
+                if (item.value.hasOwnProperty("elm-hot-nav-key")) {
+                    // found it!
+                    return item;
+                }
+
+                for (var propName in item.value) {
+                    if (!item.value.hasOwnProperty(propName)) continue;
+                    var newKeypath = item.keypath.slice();
+                    newKeypath.push(propName);
+                    queue.push({value: item.value[propName], keypath: newKeypath})
+                }
+            }
+
+            return null;
+        }
+
+
         function isDebuggerModel(model) {
             return model && model.hasOwnProperty("expando") && model.hasOwnProperty("state");
         }
 
-        function findNavKey(model) {
-            for (var propName in model) {
-                if (!model.hasOwnProperty(propName)) continue;
-                var prop = model[propName];
-                if (prop.hasOwnProperty("elm-hot-nav-key")) {
-                    return {name: propName, value: prop};
-                }
-            }
-            return null;
+        function getAt(keyPath, obj) {
+            return keyPath.reduce(function (xs, x) {
+                return (xs && xs[x]) ? xs[x] : null
+            }, obj)
         }
 
-        function removeNavKeyListeners(model) {
-            var navKey = null;
-            if (isDebuggerModel(model)) {
-                navKey = findNavKey(model['state']['a']);
-            } else {
-                navKey = findNavKey(model);
-            }
-            if (navKey) {
-                window.removeEventListener('popstate', navKey.value);
-                window.navigator.userAgent.indexOf('Trident') < 0 || window.removeEventListener('hashchange', navKey.value);
-            }
+        function removeNavKeyListeners(navKey) {
+            window.removeEventListener('popstate', navKey.value);
+            window.navigator.userAgent.indexOf('Trident') < 0 || window.removeEventListener('hashchange', navKey.value);
         }
 
         // hook program creation
@@ -347,27 +358,34 @@ if (module.hot) {
                     var newModel = initialStateTuple.a;
 
                     if (typeof elm$browser$Browser$application !== 'undefined') {
-                        // remove old navigation listeners
-                        removeNavKeyListeners(oldModel);
-
                         // attempt to find the Browser.Navigation.Key in the newly-constructed model
                         // and bring it along with the rest of the old data.
-                        var newKey = null;
-                        if (isDebuggerModel(newModel)) {
-                            newKey = findNavKey(newModel['state']['a']);
-                            if (newKey) {
-                                oldModel['state']['a'][newKey.name] = newKey.value;
-                            }
+                        var newKeyLoc = findNavKey(newModel);
+                        var error = null;
+                        if (newKeyLoc === null) {
+                            error = "could not find Browser.Navigation.Key in the new app model";
+                        } else if (instance.navKeyPath === null) {
+                            error = "could not find Browser.Navigation.Key in the old app model.";
+                        } else if (newKeyLoc.keypath.toString() !== instance.navKeyPath.toString()) {
+                            error = "the location of the Browser.Navigation.Key in the model has changed.";
                         } else {
-                            newKey = findNavKey(newModel);
-                            if (newKey) {
-                                oldModel[newKey.name] = newKey.value;
+                            var oldNavKey = getAt(instance.navKeyPath, oldModel);
+                            if (oldNavKey === null) {
+                                error = "keypath " + instance.navKeyPath + " is invalid. Please report a bug."
+                            } else {
+                                // remove event listeners attached to the old nav key
+                                removeNavKeyListeners(oldNavKey);
+
+                                // insert the new nav key into the old model in the exact same location
+                                var parentKeyPath = newKeyLoc.keypath.slice(0, -1);
+                                var lastSegment = newKeyLoc.keypath.slice(-1)[0];
+                                var oldParent = getAt(parentKeyPath, oldModel);
+                                oldParent[lastSegment] = newKeyLoc.value;
                             }
                         }
-                        if (!newKey) {
-                            console.error("[elm-hot] Hot-swapping " + instance.path + " not possible. "
-                                + "You can fix this error by storing the Browser.Navigation.Key at the root "
-                                + "of your app's model.");
+
+                        if (error !== null) {
+                            console.error("[elm-hot] Hot-swapping " + instance.path + " not possible: " + error);
                             oldModel = newModel;
                         }
                     }
@@ -380,6 +398,18 @@ if (module.hot) {
                 } else {
                     // capture the initial state for later
                     initializingInstance.lastState = initialStateTuple.a;
+
+                    // capture Browser.application's navigation key for later
+                    if (typeof elm$browser$Browser$application !== 'undefined') {
+                        var navKeyLoc = findNavKey(initializingInstance.lastState);
+                        if (!navKeyLoc) {
+                            console.error("[elm-hot] Hot-swapping disabled for " + instance.path
+                                + ": could not find Browser.Navigation.Key in your model.");
+                            instance.navKeyPath = null;
+                        } else {
+                            instance.navKeyPath = navKeyLoc.keypath;
+                        }
+                    }
                 }
 
                 return initialStateTuple
@@ -452,7 +482,7 @@ if (module.hot) {
             });
         }
     })();
-    
+
     scope['_elm_hot_loader_init'](scope['Elm']);
 }
 //////////////////// HMR END ////////////////////

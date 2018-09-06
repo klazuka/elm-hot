@@ -32,6 +32,14 @@ test('counter HMR preserves count (Browser.application)', async t => {
     await doBrowserApplicationTest(t, "BrowserApplicationCounter");
 });
 
+test('Browser.Navigation.Key can be found in a nested record', async t => {
+    await doBrowserApplicationTest(t, "BrowserApplicationCounterDeepKey");
+});
+
+test('Browser.Navigation.Key can be found in the variants of a union type', async t => {
+    await doBrowserApplicationTest(t, "BrowserApplicationCounterMultiKey");
+});
+
 test('init side effects do not run after HMR', async t => {
     // see https://github.com/klazuka/elm-hot-webpack-loader/issues/1
     await doCounterTest(t, "InitSideEffects");
