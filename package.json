@@ -1,6 +1,6 @@
 {
   "name": "elm-hot",
-  "version": "0.9.1",
+  "version": "1.0.0",
   "description": "Hot code swapping for Elm",
   "keywords": [
     "Elm",
