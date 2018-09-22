@@ -174,6 +174,17 @@ async function doBrowserApplicationTest(t, testName) {
 }
 
 
+test('if Browser.Navigation.Key cannot be found, degrade gracefully', async t => {
+    const testName = "BrowserApplicationMissingNavKeyError";
+    // There was a bug (https://github.com/klazuka/elm-hot/issues/15) which caused an infinite loop
+    // when the root of the model was a union type and the Browser.Navigation.Key could not be found.
+    const page = t.context.page;
+    await page.goto(`${t.context.serverUrl}/${testName}.html`);
+    // If we made it this far, then the page successfully loaded.
+    t.pass()
+});
+
+
 // TEST BUILDING BLOCKS
 
 
