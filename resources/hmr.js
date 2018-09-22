@@ -318,6 +318,10 @@ if (module.hot) {
                     return item;
                 }
 
+                if (typeof item.value !== "object") {
+                    continue;
+                }
+
                 for (var propName in item.value) {
                     if (!item.value.hasOwnProperty(propName)) continue;
                     var newKeypath = item.keypath.slice();
