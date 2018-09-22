@@ -13,6 +13,9 @@ The goal of this package is to provide a reusable core that can be used to provi
 
 ## Changelog
 
+### 1.0.1
+- bug fixes
+
 ### 1.0.0
 - improved Browser.application support (Browser.Navigation.Key can be stored anywhere in your model now) 
 
