@@ -8,9 +8,11 @@
 </head>
 
 <body>
+<div id="ignored"></div>
     <script>
         connect("BrowserDocumentCounter");
         Elm.BrowserDocumentCounter.init({
+            node: "ignored", // this should be ignored by HMR: see https://github.com/klazuka/elm-hot/issues/14
             flags: {
                 n: 0
             }

@@ -124,6 +124,12 @@ if (module.hot) {
             return instances[id] = instance
         }
 
+        function isFullscreenApp() {
+            // Returns true if the Elm app will take over the entire DOM body.
+            return typeof elm$browser$Browser$application !== 'undefined'
+                || typeof elm$browser$Browser$document !== 'undefined';
+        }
+
         function wrapDomNode(node) {
             // When embedding an Elm app into a specific DOM node, Elm will replace the provided
             // DOM node with the Elm app's content. When the Elm app is compiled normally, the
@@ -159,7 +165,9 @@ if (module.hot) {
                     var flags = null;
                     if (typeof args !== 'undefined') {
                         // normal case
-                        domNode = args['node'] ? wrapDomNode(args['node']) : document.body;
+                        domNode = args['node'] && !isFullscreenApp()
+                            ? wrapDomNode(args['node'])
+                            : document.body;
                         flags = args['flags'];
                     } else {
                         // rare case: Elm allows init to be called without any arguments at all
