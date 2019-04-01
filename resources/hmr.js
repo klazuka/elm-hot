@@ -200,13 +200,17 @@ if (module.hot) {
                     var flags = null;
                     if (typeof args !== 'undefined') {
                         // normal case
-                        domNode = args['node'] && !isFullscreenApp()
-                            ? wrapDomNode(args['node'])
-                            : document.body;
+                        if (args['node'] && !isFullscreenApp()) {
+                            domNode = wrapDomNode(args['node']);
+                        } else if (typeof document !== 'undefined') {
+                            domNode = document.body;
+                        }
                         flags = args['flags'];
                     } else {
                         // rare case: Elm allows init to be called without any arguments at all
-                        domNode = document.body;
+                        if (typeof document !== 'undefined') {
+                            domNode = document.body;
+                        }
                         flags = undefined
                     }
                     initializingInstance = registerInstance(domNode, flags, path, portSubscribes, portSends);
