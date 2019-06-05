@@ -51,7 +51,7 @@ if (module.hot) {
             : 0;
 
         if (Object.keys(instances).length === 0) {
-            console.log("[elm-hot] Enabled");
+            log("[elm-hot] Enabled");
         }
 
         var cancellers = [];
@@ -75,7 +75,7 @@ if (module.hot) {
 
             // Second, kill pending tasks belonging to the old instance
             if (cancellers.length) {
-                console.log('[elm-hot] Killing ' + cancellers.length + ' running processes...');
+                log('[elm-hot] Killing ' + cancellers.length + ' running processes...');
                 try {
                     cancellers.forEach(function (cancel) {
                         cancel();
@@ -85,6 +85,12 @@ if (module.hot) {
                 }
             }
         });
+
+        function log(message) {
+            if (module.hot.verbose) {
+                console.log(message)
+            }
+        }
 
         function getId() {
             return ++uid;
@@ -186,7 +192,7 @@ if (module.hot) {
         }
 
         function swap(Elm, instance) {
-            console.log('[elm-hot] Hot-swapping module: ' + instance.path);
+            log('[elm-hot] Hot-swapping module: ' + instance.path);
 
             swappingInstance = instance;
 
@@ -218,28 +224,28 @@ if (module.hot) {
                         if (!handlers.length) {
                             return;
                         }
-                        console.log('[elm-hot] Reconnect ' + handlers.length + ' handler(s) to port \''
+                        log('[elm-hot] Reconnect ' + handlers.length + ' handler(s) to port \''
                             + portName + '\' (' + instance.path + ').');
                         handlers.forEach(function (handler) {
                             elm.ports[portName].subscribe(handler);
                         });
                     } else {
                         delete instance.portSubscribes[portName];
-                        console.log('[elm-hot] Port was removed: ' + portName);
+                        log('[elm-hot] Port was removed: ' + portName);
                     }
                 });
 
                 Object.keys(instance.portSends).forEach(function (portName) {
                     if (portName in elm.ports && 'send' in elm.ports[portName]) {
-                        console.log('[elm-hot] Replace old port send with the new send');
+                        log('[elm-hot] Replace old port send with the new send');
                         instance.portSends[portName] = elm.ports[portName].send;
                     } else {
                         delete instance.portSends[portName];
-                        console.log('[elm-hot] Port was removed: ' + portName);
+                        log('[elm-hot] Port was removed: ' + portName);
                     }
                 });
             } else {
-                console.log('[elm-hot] Module was removed: ' + instance.path);
+                log('[elm-hot] Module was removed: ' + instance.path);
             }
 
             swappingInstance = null;
@@ -260,7 +266,7 @@ if (module.hot) {
                         var unsubscribe = port.unsubscribe;
                         elm.ports[portName] = Object.assign(port, {
                             subscribe: function (handler) {
-                                console.log('[elm-hot] ports.' + portName + '.subscribe called.');
+                                log('[elm-hot] ports.' + portName + '.subscribe called.');
                                 if (!portSubscribes[portName]) {
                                     portSubscribes[portName] = [handler];
                                 } else {
@@ -270,7 +276,7 @@ if (module.hot) {
                                 return subscribe.call(port, handler);
                             },
                             unsubscribe: function (handler) {
-                                console.log('[elm-hot] ports.' + portName + '.unsubscribe called.');
+                                log('[elm-hot] ports.' + portName + '.unsubscribe called.');
                                 var list = portSubscribes[portName];
                                 if (list && list.indexOf(handler) !== -1) {
                                     list.splice(list.lastIndexOf(handler), 1);
