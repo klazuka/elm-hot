@@ -154,6 +154,7 @@ if (module.hot) {
             // behind their back and rudely put stuff in their DOM.
             var dummyNode = document.createElement("div");
             dummyNode.setAttribute("data-elm-hot", "true");
+            dummyNode.style.height = "inherit";
             var parentNode = node.parentNode;
             parentNode.replaceChild(dummyNode, node);
             dummyNode.appendChild(node);
