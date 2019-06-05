@@ -55,7 +55,9 @@ var module = {
             var newData = {};
             myDisposeCallback(newData);
             module.hot.data = newData
-        }
+        },
+
+        verbose: true
 
     }
 };
