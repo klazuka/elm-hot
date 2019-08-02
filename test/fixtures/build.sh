@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+cd "${0%/*}" # set CWD to the dir containing the script
+
 set -o errexit
 set -o pipefail
 set -o nounset
