@@ -43,6 +43,35 @@ if (module.hot) {
             };
         }
 
+        // Elm 0.19.1 introduced a '$' prefix at the beginning of the symbols it emits,
+        // and we check for `List.map` because we expect it to be present in all Elm programs.
+        var elmVersion;
+        if (typeof elm$core$List$map !== 'undefined')
+            elmVersion = '0.19.0';
+        else if (typeof $elm$core$List$map !== 'undefined')
+            elmVersion = '0.19.1';
+        else
+            throw new Error("Could not determine Elm version");
+
+        function elmSymbol(symbol) {
+            try {
+                switch (elmVersion) {
+                    case '0.19.0':
+                        return eval(symbol);
+                    case '0.19.1':
+                        return eval('$' + symbol);
+                    default:
+                        throw new Error('Cannot resolve ' + symbol + '. Elm version unknown!')
+                }
+            } catch (e) {
+                if (e instanceof ReferenceError) {
+                    return undefined;
+                } else {
+                    throw e;
+                }
+            }
+        }
+
         var instances = module.hot.data
             ? module.hot.data.instances || {}
             : {};
@@ -132,8 +161,8 @@ if (module.hot) {
 
         function isFullscreenApp() {
             // Returns true if the Elm app will take over the entire DOM body.
-            return typeof elm$browser$Browser$application !== 'undefined'
-                || typeof elm$browser$Browser$document !== 'undefined';
+            return typeof elmSymbol("elm$browser$Browser$application") !== 'undefined'
+                || typeof elmSymbol("elm$browser$Browser$document") !== 'undefined';
         }
 
         function wrapDomNode(node) {
@@ -376,7 +405,7 @@ if (module.hot) {
                     var oldModel = swappingInstance.lastState;
                     var newModel = initialStateTuple.a;
 
-                    if (typeof elm$browser$Browser$application !== 'undefined') {
+                    if (typeof elmSymbol("elm$browser$Browser$application") !== 'undefined') {
                         // attempt to find the Browser.Navigation.Key in the newly-constructed model
                         // and bring it along with the rest of the old data.
                         var newKeyLoc = findNavKey(newModel);
@@ -413,13 +442,13 @@ if (module.hot) {
                     initialStateTuple.a = oldModel;
 
                     // ignore any Cmds returned by the init during hot-swap
-                    initialStateTuple.b = elm$core$Platform$Cmd$none;
+                    initialStateTuple.b = elmSymbol("elm$core$Platform$Cmd$none");
                 } else {
                     // capture the initial state for later
                     initializingInstance.lastState = initialStateTuple.a;
 
                     // capture Browser.application's navigation key for later
-                    if (typeof elm$browser$Browser$application !== 'undefined') {
+                    if (typeof elmSymbol("elm$browser$Browser$application") !== 'undefined') {
                         var navKeyLoc = findNavKey(initializingInstance.lastState);
                         if (!navKeyLoc) {
                             console.error("[elm-hot] Hot-swapping disabled for " + instance.path
