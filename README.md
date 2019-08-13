@@ -13,6 +13,12 @@ The goal of this package is to provide a reusable core that can be used to provi
 
 ## Changelog
 
+### 1.1.2
+- fixed a bug where HMR would not work for very small ("toy") Elm projects
+
+### 1.1.1
+- added support for Elm 0.19.1
+
 ### 1.0.1
 - bug fixes
 
