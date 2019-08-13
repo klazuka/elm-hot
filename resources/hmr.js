@@ -44,11 +44,11 @@ if (module.hot) {
         }
 
         // Elm 0.19.1 introduced a '$' prefix at the beginning of the symbols it emits,
-        // and we check for `List.map` because we expect it to be present in all Elm programs.
+        // and we check for `Maybe.Just` because we expect it to be present in all Elm programs.
         var elmVersion;
-        if (typeof elm$core$List$map !== 'undefined')
+        if (typeof elm$core$Maybe$Just !== 'undefined')
             elmVersion = '0.19.0';
-        else if (typeof $elm$core$List$map !== 'undefined')
+        else if (typeof $elm$core$Maybe$Just !== 'undefined')
             elmVersion = '0.19.1';
         else
             throw new Error("Could not determine Elm version");
