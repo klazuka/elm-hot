@@ -356,6 +356,10 @@ if (module.hot) {
             while (queue.length !== 0) {
                 var item = queue.shift();
 
+                if (typeof item.value === "undefined") {
+                    continue;
+                }
+
                 // The nav key is identified by a runtime tag added by the elm-hot injector.
                 if (item.value.hasOwnProperty("elm-hot-nav-key")) {
                     // found it!
@@ -379,7 +383,11 @@ if (module.hot) {
 
 
         function isDebuggerModel(model) {
-            return model && model.hasOwnProperty("expando") && model.hasOwnProperty("state");
+            // Up until elm/browser 1.0.2, the Elm debugger could be identified by a
+            // property named "expando". But in version 1.0.2 that was renamed to "expandoModel"
+            return model
+                && (model.hasOwnProperty("expando") || model.hasOwnProperty("expandoModel"))
+                && model.hasOwnProperty("state");
         }
 
         function getAt(keyPath, obj) {
