@@ -152,7 +152,6 @@ if (module.hot) {
                 flags: flags,
                 portSubscribes: portSubscribes,
                 portSends: portSends,
-                navKeyPath: null, // array of JS property names by which the Browser.Navigation.Key can be found in the model
                 lastState: null // last Elm app state (root model)
             };
 
@@ -414,30 +413,27 @@ if (module.hot) {
                     var newModel = initialStateTuple.a;
 
                     if (typeof elmSymbol("elm$browser$Browser$application") !== 'undefined') {
+                        var oldKeyLoc = findNavKey(oldModel);
+
                         // attempt to find the Browser.Navigation.Key in the newly-constructed model
                         // and bring it along with the rest of the old data.
                         var newKeyLoc = findNavKey(newModel);
                         var error = null;
                         if (newKeyLoc === null) {
                             error = "could not find Browser.Navigation.Key in the new app model";
-                        } else if (instance.navKeyPath === null) {
+                        } else if (oldKeyLoc === null) {
                             error = "could not find Browser.Navigation.Key in the old app model.";
-                        } else if (newKeyLoc.keypath.toString() !== instance.navKeyPath.toString()) {
+                        } else if (newKeyLoc.keypath.toString() !== oldKeyLoc.keypath.toString()) {
                             error = "the location of the Browser.Navigation.Key in the model has changed.";
                         } else {
-                            var oldNavKey = getAt(instance.navKeyPath, oldModel);
-                            if (oldNavKey === null) {
-                                error = "keypath " + instance.navKeyPath + " is invalid. Please report a bug."
-                            } else {
-                                // remove event listeners attached to the old nav key
-                                removeNavKeyListeners(oldNavKey);
+                            // remove event listeners attached to the old nav key
+                            removeNavKeyListeners(oldKeyLoc.value);
 
-                                // insert the new nav key into the old model in the exact same location
-                                var parentKeyPath = newKeyLoc.keypath.slice(0, -1);
-                                var lastSegment = newKeyLoc.keypath.slice(-1)[0];
-                                var oldParent = getAt(parentKeyPath, oldModel);
-                                oldParent[lastSegment] = newKeyLoc.value;
-                            }
+                            // insert the new nav key into the old model in the exact same location
+                            var parentKeyPath = oldKeyLoc.keypath.slice(0, -1);
+                            var lastSegment = oldKeyLoc.keypath.slice(-1)[0];
+                            var oldParent = getAt(parentKeyPath, oldModel);
+                            oldParent[lastSegment] = newKeyLoc.value;
                         }
 
                         if (error !== null) {
@@ -454,18 +450,6 @@ if (module.hot) {
                 } else {
                     // capture the initial state for later
                     initializingInstance.lastState = initialStateTuple.a;
-
-                    // capture Browser.application's navigation key for later
-                    if (typeof elmSymbol("elm$browser$Browser$application") !== 'undefined') {
-                        var navKeyLoc = findNavKey(initializingInstance.lastState);
-                        if (!navKeyLoc) {
-                            console.error("[elm-hot] Hot-swapping disabled for " + instance.path
-                                + ": could not find Browser.Navigation.Key in your model.");
-                            instance.navKeyPath = null;
-                        } else {
-                            instance.navKeyPath = navKeyLoc.keypath;
-                        }
-                    }
                 }
 
                 return initialStateTuple

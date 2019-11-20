@@ -81,6 +81,11 @@ test('Browser.Navigation.Key can be found in the variants of a union type', asyn
     await doBrowserApplicationTest(t, "BrowserApplicationCounterMultiKey");
 });
 
+test('Browser.Navigation.Key can be found even when the keypath changes', async t => {
+    // see https://github.com/klazuka/elm-hot/issues/35
+    await doBrowserApplicationTest(t, "BrowserApplicationNavKeyMoved");
+});
+
 test('init side effects do not run after HMR', async t => {
     // see https://github.com/klazuka/elm-hot-webpack-loader/issues/1
     await doCounterTest(t, "InitSideEffects");
