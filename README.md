@@ -13,6 +13,10 @@ The goal of this package is to provide a reusable core that can be used to provi
 
 ## Changelog
 
+### 1.1.4
+- fixed a bug where HMR failed because `Browser.Navigation.Key` changed location
+- fixed a crash when the app's `Model` contains `Json.Encode.null`
+
 ### 1.1.3
 - fixed a crash when using Elm debugger and elm/browser 1.0.2
 
