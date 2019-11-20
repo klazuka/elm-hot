@@ -13,6 +13,9 @@ The goal of this package is to provide a reusable core that can be used to provi
 
 ## Changelog
 
+### 1.1.3
+- fixed a crash when using Elm debugger and elm/browser 1.0.2
+
 ### 1.1.2
 - fixed a bug where HMR would not work for very small ("toy") Elm projects
 
