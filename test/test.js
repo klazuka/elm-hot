@@ -165,6 +165,11 @@ test('ports are reconnected after HMR (fullscreen case)', async t => {
     await doCounterTest(t, "PortsFullscreen");
 });
 
+test('an Elm model containing `null` should not crash', async t => {
+    // see https://github.com/klazuka/elm-hot/pull/36
+    await doCounterTest(t, "BrowserApplicationWithNull");
+});
+
 async function doCounterTest(t, testName) {
     const page = t.context.page;
     await page.goto(`${t.context.serverUrl}/${testName}.html`);
