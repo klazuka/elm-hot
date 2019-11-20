@@ -356,7 +356,7 @@ if (module.hot) {
             while (queue.length !== 0) {
                 var item = queue.shift();
 
-                if (typeof item.value === "undefined") {
+                if (typeof item.value === "undefined" || item.value === null) {
                     continue;
                 }
 
