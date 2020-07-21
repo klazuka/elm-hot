@@ -13,6 +13,9 @@ The goal of this package is to provide a reusable core that can be used to provi
 
 ## Changelog
 
+### 1.1.5
+- update dependencies
+
 ### 1.1.4
 - fixed a bug where HMR failed because `Browser.Navigation.Key` changed location
 - fixed a crash when the app's `Model` contains `Json.Encode.null`
