@@ -24,11 +24,6 @@
     ]
   },
   "devDependencies": {
-    "ava": "^2.2.0",
-    "chokidar": "^3.0.2",
-    "elm": "^0.19.0",
-    "express": "^4.17.1",
-    "puppeteer": "^1.19.0",
-    "tap-xunit": "^2.4.1"
+    "elm": "0.19.1-3"
   }
 }
