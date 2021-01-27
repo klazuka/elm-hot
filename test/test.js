@@ -150,14 +150,14 @@ test('pending async tasks are cancelled when HMR is performed', async t => {
     // trigger sleepy increment but do HMR halfway through, cancelling the increment
     await incrementCounter(page);
     t.is(await getCounterValue(page), 0); // still 0 because the increment is async
-    await page.waitFor(sleepyTaskMillis / 2);
+    await page.waitForTimeout(sleepyTaskMillis / 2);
     await modifyElmCode(t, testName, page, "v1", "v2");
-    await page.waitFor((sleepyTaskMillis / 2) + slop);
+    await page.waitForTimeout((sleepyTaskMillis / 2) + slop);
     t.is(await getCounterValue(page), 0); // should still be 0 because the increment was cancelled
 
     // trigger sleepy increment but this time allow it to complete
     await incrementCounter(page);
-    await page.waitFor(sleepyTaskMillis + slop);
+    await page.waitForTimeout(sleepyTaskMillis + slop);
     t.is(await getCounterValue(page), 1); // should now be 1 because the increment had time to finish
     await modifyElmCode(t, testName, page, "v2", "v3");
 });
@@ -255,7 +255,7 @@ async function modifyElmCode(t, testName, page, oldVersion, newVersion, selector
     }
     fs.writeFileSync(pathToElmCode, newElmCode);
     // console.log("Finished writing to the compiled Elm file on disk");
-    await page.waitFor(200);
+    await page.waitForTimeout(200);
     // console.log("done sleeping");
 
     await checkCodeVersion(t, page, newVersion, selectorScope);
