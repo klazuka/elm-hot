@@ -19,9 +19,11 @@ function inject(originalElmCodeJS) {
         // the Browser.Navigation.Key in a user's model so that we do not swap out the new one for
         // the old. But as currently implemented (2018-08-19), there's no good way to detect it.
         // So we will add a property to the key immediately after it's created so that we can find it.
-        const navKeyDefinition = "var key = function() { key.a(onUrlChange(_Browser_getUrl())); };";
-        const navKeyTag = "key['elm-hot-nav-key'] = true";
-        modifiedCode = originalElmCodeJS.replace(navKeyDefinition, navKeyDefinition + "\n" + navKeyTag);
+        const navKeyDefinition = /var\s+key\s*=\s*function\s*\(\)\s*{\s*key.a\(\s*onUrlChange\(\s*_Browser_getUrl\(\)\s*\)\s*\);\s*};/;
+        function replacementString(match) {
+            return match + "\n" + "key['elm-hot-nav-key'] = true;";
+        }
+        modifiedCode = originalElmCodeJS.replace(navKeyDefinition, replacementString);
         if (modifiedCode === originalElmCodeJS) {
             throw new Error("[elm-hot] Browser.Navigation.Key def not found. Version mismatch?");
         }
