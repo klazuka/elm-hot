@@ -13,6 +13,10 @@ The goal of this package is to provide a reusable core that can be used to provi
 
 ## Changelog
 
+### 1.1.6
+- more lenient search for Browser.Navigation.Key in the generated JS
+- updated dependencies
+
 ### 1.1.5
 - update dependencies
 
