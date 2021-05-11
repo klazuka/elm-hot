@@ -423,8 +423,6 @@ if (module.hot) {
                             error = "could not find Browser.Navigation.Key in the new app model";
                         } else if (oldKeyLoc === null) {
                             error = "could not find Browser.Navigation.Key in the old app model.";
-                        } else if (newKeyLoc.keypath.toString() !== oldKeyLoc.keypath.toString()) {
-                            error = "the location of the Browser.Navigation.Key in the model has changed.";
                         } else {
                             // remove event listeners attached to the old nav key
                             removeNavKeyListeners(oldKeyLoc.value);
