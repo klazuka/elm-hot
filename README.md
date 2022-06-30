@@ -6,7 +6,7 @@ This package provides the core infrastructure needed for doing hot code swapping
 
 **This low-level package is intended for authors of Elm application servers.**
 
-If you're looking for something that's easier to use, and you're willing to use Webpack, see [elm-hot-webpack-loader](https://github.com/klazuka/elm-hot-webpack-loader), which is built using this package. Another option is Parcel which has [built-in support for Elm](https://parceljs.org/elm.html) and this package.
+If you're looking for something that's easier to use, and you're willing to use Webpack, see [elm-hot-webpack-loader](https://github.com/klazuka/elm-hot-webpack-loader), which is built using this package. Another option is Parcel which has [built-in support for Elm](https://parceljs.org/languages/elm/) and this package.
 
 The goal of this package is to provide a reusable core that can be used to provide hot code swapping support in a variety of environments--not just Webpack.
 
